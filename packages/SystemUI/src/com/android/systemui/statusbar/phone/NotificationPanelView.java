@@ -34,18 +34,10 @@ import com.android.systemui.statusbar.GestureRecorder;
 public class NotificationPanelView extends PanelView {
     public static final boolean DEBUG_GESTURES = true;
 
-<<<<<<< HEAD
     private static final float STATUS_BAR_SWIPE_TRIGGER_PERCENTAGE = 0.05f;
     private static final float STATUS_BAR_SWIPE_VERTICAL_MAX_PERCENTAGE = 0.025f;
     private static final float STATUS_BAR_SWIPE_MOVE_PERCENTAGE = 0.2f;
 
-    Drawable mHandleBar;
-    int mHandleBarHeight;
-    View mHandleView;
-    int mFingers;
-    PhoneStatusBar mStatusBar;
-    boolean mOkToFlip;
-=======
     private static final float STATUS_BAR_SETTINGS_LEFT_PERCENTAGE = 0.8f;
     private static final float STATUS_BAR_SETTINGS_RIGHT_PERCENTAGE = 0.2f;
 
@@ -55,7 +47,6 @@ public class NotificationPanelView extends PanelView {
     private int mFingers;
     private PhoneStatusBar mStatusBar;
     private boolean mOkToFlip;
->>>>>>> 90bd28d... Quick Settings Pulldown: Left or Right side option
 
     private float mGestureStartX;
     private float mGestureStartY;
@@ -135,12 +126,9 @@ public class NotificationPanelView extends PanelView {
         }
         boolean shouldRecycleEvent = false;
         if (PhoneStatusBar.SETTINGS_DRAG_SHORTCUT && mStatusBar.mHasFlipSettings) {
-<<<<<<< HEAD
             boolean swipeFlipJustFinished = false;
             boolean swipeFlipJustStarted = false;
-=======
             boolean flip = false;
->>>>>>> 90bd28d... Quick Settings Pulldown: Left or Right side option
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
                     mGestureStartX = event.getX(0);
@@ -193,7 +181,6 @@ public class NotificationPanelView extends PanelView {
                     }
                     break;
                 case MotionEvent.ACTION_POINTER_DOWN:
-<<<<<<< HEAD
                     if (mOkToFlip) {
                         float miny = event.getY(0);
                         float maxy = miny;
@@ -211,9 +198,7 @@ public class NotificationPanelView extends PanelView {
                             mOkToFlip = false;
                         }
                     }
-=======
                     flip = true;
->>>>>>> 90bd28d... Quick Settings Pulldown: Left or Right side option
                     break;
                 case MotionEvent.ACTION_UP:
                     swipeFlipJustFinished = mSwipeTriggered;
@@ -221,7 +206,6 @@ public class NotificationPanelView extends PanelView {
                     mTrackingSwipe = false;
                     break;
             }
-<<<<<<< HEAD
 
             if (mSwipeTriggered) {
                 final float deltaX = (event.getX(0) - mGestureStartX) * mSwipeDirection;
@@ -250,25 +234,6 @@ public class NotificationPanelView extends PanelView {
         final boolean result = mHandleView.dispatchTouchEvent(event);
         if (shouldRecycleEvent) {
             event.recycle();
-=======
-            if (mOkToFlip && flip) {
-                float miny = event.getY(0);
-                float maxy = miny;
-                for (int i=1; i<event.getPointerCount(); i++) {
-                    final float y = event.getY(i);
-                    if (y < miny) miny = y;
-                    if (y > maxy) maxy = y;
-                }
-                if (maxy - miny < mHandleBarHeight) {
-                    if (mJustPeeked || getExpandedHeight() < mHandleBarHeight) {
-                        mStatusBar.switchToSettings();
-                    } else {
-                        mStatusBar.flipToSettings();
-                    }
-                    mOkToFlip = false;
-                }
-            }
->>>>>>> 90bd28d... Quick Settings Pulldown: Left or Right side option
         }
         return result;
     }

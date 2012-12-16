@@ -68,11 +68,8 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
 import android.view.Gravity;
-<<<<<<< HEAD
 import android.view.KeyEvent;
-=======
 import android.view.HapticFeedbackConstants;
->>>>>>> head
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
