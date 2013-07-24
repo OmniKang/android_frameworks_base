@@ -2954,7 +2954,13 @@ public final class Settings {
          * Network speed indicator
          * @hide
          */
-        public static final String STATUS_BAR_TRAFFIC = "status_bar_traffic";
+        public static final String STATUS_BAR_TRAFFIC_ENABLE = "status_bar_traffic_enable";
+
+        /**
+         * Hide network speed indicator when there is no traffic
+         * @hide
+         */
+        public static final String STATUS_BAR_TRAFFIC_HIDE = "status_bar_traffic_hide";
 
         /**
          * Whether to use a separate delay for "slide to unlock" and security
