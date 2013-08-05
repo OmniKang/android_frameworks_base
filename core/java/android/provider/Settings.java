@@ -2957,6 +2957,12 @@ public final class Settings {
         public static final String STATUS_BAR_TRAFFIC_ENABLE = "status_bar_traffic_enable";
 
         /**
+         * Sets color of statusbar traffic indicator
+         * @hide
+         */
+        public static final String STATUS_BAR_TRAFFIC_COLOR = "status_bar_traffic_color";
+
+        /**
          * Hide network speed indicator when there is no traffic
          * @hide
          */
