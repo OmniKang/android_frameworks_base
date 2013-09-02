@@ -102,7 +102,7 @@ public class Traffic extends TextView {
                 updateSettings();
             }
         }
-    }
+    };
 
     public void updateTraffic() {
         mTrafficHandler = new Handler() {
@@ -129,7 +129,7 @@ public class Traffic extends TextView {
                     update();
                     super.handleMessage(msg);
                 }
-        }
+        };
         totalRxBytes = mTrafficStats.getTotalRxBytes();
         mTrafficHandler.sendEmptyMessage(0);
     }
@@ -157,7 +157,7 @@ public class Traffic extends TextView {
         public void run() {
             mTrafficHandler.sendEmptyMessage(0);
         }
-    }
+    };
 
     private void updateSettings() {
         ContentResolver resolver = mContext.getContentResolver();
