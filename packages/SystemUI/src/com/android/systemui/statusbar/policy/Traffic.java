@@ -132,19 +132,25 @@ public class Traffic extends TextView {
 
     private String formatTraffic(long bytes, boolean speed) {
         if (bytes > 10485760) { // 1024 * 1024 * 10
-            return integerFormat.format(bytes / 1048576)
-                    + (speed ? "MB/s" : "MB");
+            return (speed ? "" : "(")
+                    + integerFormat.format(bytes / 1048576)
+                    + (speed ? "MB/s" : "MB)");
         } else if (bytes > 1048576) { // 1024 * 1024
-            return decimalFormat.format(((float) bytes) / 1048576f)
-                    + (speed ? "MB/s" : "MB");
+            return (speed ? "" : "(")
+                    + decimalFormat.format(((float) bytes) / 1048576f)
+                    + (speed ? "MB/s" : "MB)");
         } else if (bytes > 10240) { // 1024 * 10
-            return integerFormat.format(bytes / 1024)
-                    + (speed ? "KB/s" : "KB");
+            return (speed ? "" : "(")
+                    + integerFormat.format(bytes / 1024)
+                    + (speed ? "KB/s" : "KB)");
         } else if (bytes > 1024) { // 1024
-            return decimalFormat.format(((float) bytes) / 1024f)
-                    + (speed ? "KB/s" : "KB");
+            return (speed ? "" : "(")
+                    + decimalFormat.format(((float) bytes) / 1024f)
+                    + (speed ? "KB/s" : "KB)");
         } else {
-            return integerFormat.format(bytes) + (speed ? "B/s" : "B");
+            return (speed ? "" : "(")
+                    + integerFormat.format(bytes)
+                    + (speed ? "B/s" : "B)");
         }
     }
 
