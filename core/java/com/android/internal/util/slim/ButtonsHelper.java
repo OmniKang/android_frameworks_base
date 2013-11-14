@@ -256,6 +256,18 @@ public class ButtonsHelper {
         return finalConfig;
     }
 
+    public static void setLockscreenShortcutConfig(Context context,
+            ArrayList<ButtonConfig> buttonsConfig, boolean reset) {
+        String config;
+        if (reset) {
+            config = "";
+        } else {
+            config = ConfigSplitHelper.setButtonsConfig(buttonsConfig, true);
+        }
+        Settings.System.putString(context.getContentResolver(),
+                    Settings.System.LOCKSCREEN_SHORTCUTS, config);
+    }
+
     public static Drawable getButtonIconImage(Context context,
             String clickAction, String customIcon) {
         int resId = -1;
@@ -297,7 +309,10 @@ public class ButtonsHelper {
         } else if (customIcon != null && !customIcon.equals(ButtonsConstants.ICON_EMPTY)) {
             File f = new File(Uri.parse(customIcon).getPath());
             if (f.exists()) {
-                return new BitmapDrawable(context.getResources(), f.getAbsolutePath());
+                return new BitmapDrawable(context.getResources(),
+                    ImageHelper.getRoundedCornerBitmap(
+                        new BitmapDrawable(context.getResources(),
+                        f.getAbsolutePath()).getBitmap()));
             } else {
                 Log.e("ButtonsHelper:", "can't access custom icon image");
                 return null;

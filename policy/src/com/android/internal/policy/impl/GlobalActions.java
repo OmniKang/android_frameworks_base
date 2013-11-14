@@ -1466,6 +1466,13 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 itemView.setSelected(selectedIndex == i);
                 // Set up click handler
                 itemView.setTag(i);
+                //if (colorMode != 3) {
+                //    ImageView icon = (ImageView) itemView.findViewById(ICON_IDS[i]);
+                //    if (icon != null) {
+                //        icon.setImageDrawable(ImageHelper.resize(mContext, new BitmapDrawable(
+                //            ImageHelper.getColoredBitmap(icon.getDrawable(), iconColor)), 35));
+                //    }
+                //}
                 itemView.setOnClickListener(this);
             }
             return v;
