@@ -75,4 +75,7 @@
     <!-- Title shown in recents popup for unlocking an app from being cleared -->
     <string name="status_bar_recent_unlock_item_title">Unlock</string>
 
+    <!-- Kill app toast -->
+    <string name="app_killed_message">App Killed</string>
+
 </resources>

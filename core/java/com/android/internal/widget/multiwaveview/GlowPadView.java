@@ -79,6 +79,7 @@ public class GlowPadView extends View {
         public void onGrabbed(View v, int handle);
         public void onReleased(View v, int handle);
         public void onTrigger(View v, int target);
+        public void onTargetChange(View v, int target);
         public void onGrabbedStateChange(View v, int handle);
         public void onFinishFinalAnimation();
     }
@@ -475,6 +476,9 @@ public class GlowPadView extends View {
             target.setState(TargetDrawable.STATE_INACTIVE);
         }
         mActiveTarget = -1;
+        if (mOnTriggerListener != null) {
+            mOnTriggerListener.onTargetChange(this, mActiveTarget);
+        }
     }
 
     /**
@@ -654,30 +658,12 @@ public class GlowPadView extends View {
         }
     }
 
-    private void internalSetTargetResources(ArrayList<TargetDrawable> targets) {
-        if (targets == null || targets.size() == 0) {
-            throw new IllegalStateException("Must specify at least one target drawable");
-        }
+    private void internalSetTargetResources(ArrayList<TargetDrawable> drawList) {
         mTargetResourceId = 0;
-        mTargetDrawables = targets;
-
-        int maxWidth = mHandleDrawable.getWidth();
-        int maxHeight = mHandleDrawable.getHeight();
-        final int count = targets.size();
-        for (int i = 0; i < count; i++) {
-            TargetDrawable target = targets.get(i);
-            maxWidth = Math.max(maxWidth, target.getWidth());
-            maxHeight = Math.max(maxHeight, target.getHeight());
-        }
-        if (mMaxTargetWidth != maxWidth || mMaxTargetHeight != maxHeight) {
-            mMaxTargetWidth = maxWidth;
-            mMaxTargetHeight = maxHeight;
-            requestLayout(); // required to resize layout and call updateTargetPositions()
-        } else {
-            updateTargetPositions(mWaveCenterX, mWaveCenterY);
-            updatePointCloudPosition(mWaveCenterX, mWaveCenterY);
-            hideTargets(false, false);
-        }
+        mTargetDrawables = drawList;
+        updateTargetPositions(mWaveCenterX, mWaveCenterY);
+        updatePointCloudPosition(mWaveCenterX, mWaveCenterY);
+        hideTargets(false, false);
     }
 
     /**
@@ -1019,6 +1005,7 @@ public class GlowPadView extends View {
                 TargetDrawable target = targets.get(activeTarget);
                 if (target.hasState(TargetDrawable.STATE_FOCUSED)) {
                     target.setState(TargetDrawable.STATE_FOCUSED);
+                    vibrate();
                 }
                 if (mMagneticTargets) {
                     updateTargetPosition(activeTarget, mWaveCenterX, mWaveCenterY, activeAngle);
@@ -1030,6 +1017,9 @@ public class GlowPadView extends View {
             }
         }
         mActiveTarget = activeTarget;
+        if (mOnTriggerListener !=null) {
+            mOnTriggerListener.onTargetChange(this, mActiveTarget);
+        }
     }
 
     @Override
@@ -1376,10 +1366,8 @@ public class GlowPadView extends View {
     }
 
     private String getTargetDescription(int index) {
-        if (mTargetDescriptionsResourceId == 0) {
-            return null;
-        }
-        if (mTargetDescriptions == null || mTargetDescriptions.isEmpty()) {
+        if (mTargetDescriptions == null || mTargetDescriptions.isEmpty()
+            || index >= mTargetDescriptions.size()) {
             mTargetDescriptions = loadDescriptions(mTargetDescriptionsResourceId);
             if (mTargetDrawables.size() != mTargetDescriptions.size()) {
                 Log.w(TAG, "The number of target drawables must be"
@@ -1391,10 +1379,8 @@ public class GlowPadView extends View {
     }
 
     private String getDirectionDescription(int index) {
-        if (mDirectionDescriptionsResourceId == 0) {
-            return null;
-        }
-        if (mDirectionDescriptions == null || mDirectionDescriptions.isEmpty()) {
+        if (mDirectionDescriptions == null || mDirectionDescriptions.isEmpty()
+            || index >= mDirectionDescriptions.size()) {
             mDirectionDescriptions = loadDescriptions(mDirectionDescriptionsResourceId);
             if (mTargetDrawables.size() != mDirectionDescriptions.size()) {
                 Log.w(TAG, "The number of target drawables must be"

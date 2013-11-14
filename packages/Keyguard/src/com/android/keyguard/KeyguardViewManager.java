@@ -27,6 +27,7 @@ import android.app.ActivityManager;
 import android.appwidget.AppWidgetManager;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -743,6 +744,12 @@ public class KeyguardViewManager {
     public void showAssistant() {
         if (mKeyguardView != null) {
             mKeyguardView.showAssistant();
+        }
+    }
+
+    public void showCustomIntent(Intent intent) {
+        if (mKeyguardView != null) {
+            mKeyguardView.showCustomIntent(intent);
         }
     }
 

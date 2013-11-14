@@ -3829,8 +3829,6 @@ public final class Settings {
         public static final String STATUS_BAR_SEMI_TRANS_COLOR = "status_bar_semi_trans_color";
         public static final String CUSTOM_SYSTEM_ICON_COLOR = "custom_system_icon_color";
         public static final String SYSTEM_ICON_COLOR = "system_icon_color";
-        public static final String NAVIGATION_BAR_HEIGHT = "navigation_bar_height";
-        public static final String NAVIGATION_BAR_WIDTH = "navigation_bar_width";
         public static final String SOFT_BACK_KILL_APP_ENABLE = "soft_back_kill_app_enable";
         public static final String EMULATE_HW_MENU_KEY = "emulate_hw_menu_key";
         public static final String FORCE_SHOW_OVERFLOW_MENU = "force_show_overflow_menu";
@@ -3840,10 +3838,8 @@ public final class Settings {
          * 
          * @hide
          */
-        public static final String NAVIGATION_BAR_CONFIG = "navigation_bar_config";
         public static final String PIE_BUTTONS_CONFIG = "pie_buttons_config";
         public static final String PIE_BUTTONS_CONFIG_SECOND_LAYER = "pie_buttons_config_second_layer";
-        public static final String NAVRING_CONFIG = "navring_config";
         public static final String NOTIFICATION_SHORTCUTS_CONFIG = "notification_shortcuts_config";
         public static final String NOTIFICATION_SHORTCUTS_COLOR = "notification_shortcuts_color";
         public static final String NOTIFICATION_SHORTCUTS_COLOR_MODE = "notification_shortcuts_color_mode";
@@ -4044,6 +4040,81 @@ public final class Settings {
          * @hide
          */
         public static final String LOCKSCREEN_NOTIFICATIONS_COLOR = "lockscreen_notifications_color";
+
+        /**
+         * Navigation bar button color
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_BUTTON_TINT = "navigation_bar_button_tint";
+
+        /**
+         * Option To Colorize Navigation bar buttons in different modes
+         * 0 = all, 1 = system icons, 2 = system icons + custom user icons
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_BUTTON_TINT_MODE = "navigation_bar_button_tint_mode";
+
+        /**
+         * Navigation bar glow color
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_GLOW_TINT = "navigation_bar_glow_tint";
+
+        /**
+         * Wether navigation bar is enabled or not
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_SHOW = "navigation_bar_show";
+
+        /**
+         * Wether navigation bar is on landscape on the bottom or on the right
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_CAN_MOVE = "navigation_bar_can_move";
+
+        /**
+         * Navigation bar height when it is on protrait
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_HEIGHT = "navigation_bar_height";
+
+        /**
+         * Navigation bar height when it is on landscape at the bottom
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_HEIGHT_LANDSCAPE = "navigation_bar_height_landscape";
+
+        /**
+         * Navigation bar height when it is on landscape at the right
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_WIDTH = "navigation_bar_width";
+
+        /**
+         * Custom navigation bar intent and action configuration
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_CONFIG = "navigation_bar_config";
+
+        /**
+         * Custom navring intent and action configuration
+         *
+         * @hide
+         */
+        public static final String NAVRING_CONFIG = "navring_config";
+
+        /**
+         * Wether the navbar menu button is on the left/right/both
+         * @hide
+         */
+        public static final String MENU_LOCATION = "menu_location";
+
+        /**
+         * Wether the navbar menu button should show or not
+         * @hide
+         */
+        public static final String MENU_VISIBILITY = "menu_visibility";
+
 
         /**
          * Disable 'data disabled due to roaming' notification
