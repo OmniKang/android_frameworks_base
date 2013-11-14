@@ -483,6 +483,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         public void onChange(boolean selfChange, Uri uri) {
             super.onChange(selfChange, uri);
 
+<<<<<<< HEAD
             if (uri.equals(Settings.System.getUriFor(
                     Settings.System.NOTIFICATION_BACKGROUND))
                 || uri.equals(Settings.System.getUriFor(
@@ -499,6 +500,8 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                     Settings.System.NOTIFICATION_ALPHA))) {
                 setNotificationAlpha();
             }
+=======
+>>>>>>> bbbb6f6... fb: Slims navbar and navring customizations
             update();
 
             if (uri.equals(Settings.System.getUriFor(
@@ -2313,9 +2316,12 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
     public void flipToNotifications() {
 
+<<<<<<< HEAD
         // Settings are not available in setup
         if (!mUserSetup) return;
 
+=======
+>>>>>>> bbbb6f6... fb: Slims navbar and navring customizations
         if (mFlipSettingsViewAnim != null) mFlipSettingsViewAnim.cancel();
         if (mScrollViewAnim != null) mScrollViewAnim.cancel();
         if (mRibbonViewAnim != null) mRibbonViewAnim.cancel();
@@ -2609,6 +2615,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                 ObjectAnimator.ofFloat(mClearButton, View.ALPHA, 0f)
                 .setDuration(FLIP_DURATION),
                 mClearButton, View.INVISIBLE));
+<<<<<<< HEAD
         mNotificationPanel.postDelayed(new Runnable() {
             public void run() {
                 mAnimatingFlip = false;
@@ -2616,6 +2623,10 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         }, FLIP_DURATION - 150);
         updateCarrierAndWifiLabelVisibility(false);
         updateQuickSettings();
+=======
+        updateCarrierAndWifiLabelVisibility(false, true);
+        updateNotificationShortcutsVisibility(false);
+>>>>>>> bbbb6f6... fb: Slims navbar and navring customizations
         mNotificationPanelIsOpen = false;
         mQSPanelIsOpen = true;
     }
@@ -2994,6 +3005,30 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         Settings.System.putInt(mContext.getContentResolver(),
               Settings.System.ACCELEROMETER_ROTATION,
               enabled ? 1 : 0);
+    }
+
+    @Override  // CommandQueue
+    public void toggleNotificationShade() {
+        int msg = (mExpandedVisible)
+                ? ((mQSPanelIsOpen) ? MSG_FLIP_TO_NOTIFICATION_PANEL : MSG_CLOSE_PANELS)
+                : MSG_OPEN_NOTIFICATION_PANEL;
+        mHandler.removeMessages(msg);
+        mHandler.sendEmptyMessage(msg);
+    }
+
+    @Override  // CommandQueue
+    public void toggleQSShade() {
+        int msg = 0;
+        if (mHasFlipSettings) {
+            msg = (mExpandedVisible)
+                ? ((mNotificationPanelIsOpen) ? MSG_FLIP_TO_QS_PANEL
+                : MSG_CLOSE_PANELS) : MSG_OPEN_QS_PANEL;
+        } else {
+            msg = (mExpandedVisible)
+                ? MSG_CLOSE_PANELS : MSG_OPEN_QS_PANEL;
+        }
+        mHandler.removeMessages(msg);
+        mHandler.sendEmptyMessage(msg);
     }
 
     @Override  // CommandQueue

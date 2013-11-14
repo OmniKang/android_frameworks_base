@@ -81,11 +81,14 @@ public class NavigationBarView extends LinearLayout {
     // slippery nav bar when everything is disabled, e.g. during setup
     final static boolean SLIPPERY_WHEN_DISABLED = true;
 
+<<<<<<< HEAD
     private OnClickListener mRecentsClickListener;
     private OnLongClickListener mRecentsLongClickListener;
     private OnTouchListener mRecentsPreloadListener;
     private OnTouchListener mHomeSearchActionListener;
 
+=======
+>>>>>>> bbbb6f6... fb: Slims navbar and navring customizations
     // Definitions for navbar menu button customization
     private final static int SHOW_RIGHT_MENU = 0;
     private final static int SHOW_LEFT_MENU = 1;
@@ -256,20 +259,16 @@ public class NavigationBarView extends LinearLayout {
 
         mCameraDisabledByDpm = isCameraDisabledByDpm();
         watchForDevicePolicyChanges();
+<<<<<<< HEAD
+=======
 
         mButtonsConfig = ButtonsHelper.getNavBarConfig(mContext);
         mButtonIdList = new ArrayList<Integer>();
     }
+>>>>>>> bbbb6f6... fb: Slims navbar and navring customizations
 
-    protected void transitionCameraAndSearchButtonAlpha(float alpha) {
-        View cameraButtonView = getCameraButton();
-        if (cameraButtonView != null) {
-            cameraButtonView.animate().alpha(alpha).setDuration(CAMERA_BUTTON_FADE_DURATION);
-        }
-        View searchLight = getSearchLight();
-        if (searchLight != null) {
-            searchLight.animate().alpha(alpha).setDuration(CAMERA_BUTTON_FADE_DURATION);
-        }
+        mButtonsConfig = ButtonsHelper.getNavBarConfig(mContext);
+        mButtonIdList = new ArrayList<Integer>();
     }
 
     private void watchForDevicePolicyChanges() {
@@ -672,16 +671,46 @@ public class NavigationBarView extends LinearLayout {
             setSlippery(disableHome && disableRecent && disableBack && disableSearch);
         }
 
-        if (!mScreenOn && mCurrentView != null) {
-            ViewGroup navButtons = (ViewGroup) mCurrentView.findViewById(R.id.nav_buttons);
-            LayoutTransition lt = navButtons == null ? null : navButtons.getLayoutTransition();
+        ViewGroup navButtons = (ViewGroup) mCurrentView.findViewById(R.id.nav_buttons);
+        if (navButtons != null) {
+            LayoutTransition lt = navButtons.getLayoutTransition();
             if (lt != null) {
-                lt.disableTransitionType(
-                        LayoutTransition.CHANGE_APPEARING | LayoutTransition.CHANGE_DISAPPEARING |
-                        LayoutTransition.APPEARING | LayoutTransition.DISAPPEARING);
+                if (!lt.getTransitionListeners().contains(mTransitionListener)) {
+                    lt.addTransitionListener(mTransitionListener);
+                }
+                if (!mScreenOn && mCurrentView != null) {
+                    lt.disableTransitionType(
+                            LayoutTransition.CHANGE_APPEARING |
+                            LayoutTransition.CHANGE_DISAPPEARING |
+                            LayoutTransition.APPEARING |
+                            LayoutTransition.DISAPPEARING);
+                }
             }
         }
 
+        if (mButtonsConfig != null && !mButtonsConfig.isEmpty()) {
+            for (int j = 0; j < mButtonsConfig.size(); j++) {
+                View v = (View) findViewWithTag((mVertical ? "key_land_" : "key_") + j);
+                if (v != null) {
+                    int vid = v.getId();
+                    if (vid == R.id.back) {
+                        v.setVisibility(disableBack ? View.INVISIBLE : View.VISIBLE);
+                    } else if (vid == R.id.recent_apps) {
+                        v.setVisibility(disableRecent ? View.INVISIBLE : View.VISIBLE);
+                    } else { // treat all other buttons as same rule as home
+                        v.setVisibility(disableHome ? View.INVISIBLE : View.VISIBLE);
+                    }
+                }
+            }
+        }
+
+<<<<<<< HEAD
+        View searchLight = getSearchLight();
+        if (searchLight != null) {
+            searchLight.setVisibility(keyguardProbablyEnabled ? View.VISIBLE : View.GONE);
+        }
+
+=======
         if (mButtonsConfig != null && !mButtonsConfig.isEmpty()) {
             for (int j = 0; j < mButtonsConfig.size(); j++) {
                 View v = (View) findViewWithTag((mVertical ? "key_land_" : "key_") + j);
@@ -703,6 +732,7 @@ public class NavigationBarView extends LinearLayout {
             searchLight.setVisibility(keyguardProbablyEnabled ? View.VISIBLE : View.GONE);
         }
 
+>>>>>>> bbbb6f6... fb: Slims navbar and navring customizations
         final boolean shouldShowCamera = disableHome
             && !((disabledFlags & View.STATUS_BAR_DISABLE_SEARCH) != 0);
         final View cameraButton = getCameraButton();
@@ -759,16 +789,19 @@ public class NavigationBarView extends LinearLayout {
 
         View leftMenuKeyView = getLeftMenuButton();
         View rightMenuKeyView = getRightMenuButton();
+<<<<<<< HEAD
 
         if (leftMenuKeyView != null && rightMenuKeyView != null) {
             final boolean disableRecent =
                 ((mDisabledFlags & View.STATUS_BAR_DISABLE_RECENT) != 0);
 
+=======
 
         if (leftMenuKeyView != null && rightMenuKeyView != null) {
             final boolean disableRecent =
                 ((mDisabledFlags & View.STATUS_BAR_DISABLE_RECENT) != 0);
 
+>>>>>>> bbbb6f6... fb: Slims navbar and navring customizations
             boolean showLeftMenuButton = (mMenuVisibility == MENU_VISIBILITY_ALWAYS || show)
                 && (mMenuSetting == SHOW_LEFT_MENU || mMenuSetting == SHOW_BOTH_MENU)
                 && !disableRecent;
