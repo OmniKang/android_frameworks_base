@@ -536,6 +536,7 @@ class QuickSettings {
                                 "com.android.settings",
                                 "com.android.settings.Settings$DataUsageSummaryActivity"));
                         startSettingsActivity(intent);
+                        return true;
                     }
                 });
             }
@@ -545,7 +546,6 @@ class QuickSettings {
                 public void onClick(View v) {
                     boolean currentState = cm.getMobileDataEnabled();
                     cm.setMobileDataEnabled(!currentState);
-                    return true;
                 }
             });
             mModel.addRSSITile(rssiTile, new NetworkActivityCallback() {
