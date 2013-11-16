@@ -772,25 +772,23 @@ class QuickSettings {
         locationTile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                locationTile.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        boolean newLocationEnabledState = !mLocationController.isLocationEnabled();
-                        if (mLocationController.setLocationEnabled(newLocationEnabledState)
-                                && newLocationEnabledState) {
-                            // If we've successfully switched from location off to on, close the
-                            // notifications tray to show the network location provider consent dialog.
-                            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-                            mContext.sendBroadcast(closeDialog);
-                        }
-                        return true; // Consume click
-                    }
-                } );
+                boolean newLocationEnabledState = !mLocationController.isLocationEnabled();
+                if (mLocationController.setLocationEnabled(newLocationEnabledState) && newLocationEnabledState) {
+                    // If we've successfully switched from location off to on, close the
+                    // notifications tray to show the network location provider consent dialog.
+                    Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+                    mContext.sendBroadcast(closeDialog);
+                }
             }
         });
         if (LONG_PRESS_TOGGLES) {
-            startSettingsActivity(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            locationTile.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    startSettingsActivity(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    return true; // Consume click
+                }
+            } );
         }
         mModel.addLocationTile(locationTile,
                 new QuickSettingsModel.BasicRefreshCallback(locationTile));
