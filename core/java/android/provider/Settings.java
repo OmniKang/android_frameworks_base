@@ -2520,6 +2520,7 @@ public final class Settings {
 
         /**
          * Network speed indicator
+<<<<<<< HEAD
          * @hide
          */
         public static final String STATUS_BAR_TRAFFIC_ENABLE = "status_bar_traffic_enable";
