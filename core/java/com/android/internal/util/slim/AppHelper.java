@@ -65,7 +65,7 @@ public class AppHelper {
         return getFriendlyNameForUri(context, pm, action);
     }
 
-    public static String getFriendlyActivityName(Context context,
+    private static String getFriendlyActivityName(Context context,
             PackageManager pm, Intent intent, boolean labelOnly) {
         ActivityInfo ai = intent.resolveActivityInfo(pm, PackageManager.GET_ACTIVITIES);
         String friendlyName = null;
@@ -84,7 +84,7 @@ public class AppHelper {
         return friendlyName != null || labelOnly ? friendlyName : intent.toUri(0);
     }
 
-    public static String getFriendlyShortcutName(
+    private static String getFriendlyShortcutName(
                 Context context, PackageManager pm, Intent intent) {
         String activityName = getFriendlyActivityName(context, pm, intent, true);
         String name = intent.getStringExtra(Intent.EXTRA_SHORTCUT_NAME);
@@ -99,7 +99,7 @@ public class AppHelper {
         return name != null ? name : intent.toUri(0);
     }
 
-    public static String getFriendlyNameForUri(
+    private static String getFriendlyNameForUri(
                 Context context, PackageManager pm, String uri) {
         if (uri == null || uri.startsWith("**")) {
             return null;

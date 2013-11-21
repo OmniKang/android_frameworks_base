@@ -130,7 +130,7 @@ public class NavigationBarView extends LinearLayout {
 
     private int mNavBarButtonColor;
     private int mNavBarButtonColorMode;
-    private boolean mAppIsBinded = false;
+    private boolean mAppIsBinded;
     private boolean mAppIsMissing;
 
     private FrameLayout mRot0;

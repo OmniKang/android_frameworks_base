@@ -174,6 +174,8 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     private static final int STATUS_OR_NAV_TRANSIENT =
             View.STATUS_BAR_TRANSIENT | View.NAVIGATION_BAR_TRANSIENT;
     private static final long AUTOHIDE_TIMEOUT_MS = 3000;
+
+    // status bar brightness control
     private static final float BRIGHTNESS_CONTROL_PADDING = 0.15f;
     private static final int BRIGHTNESS_CONTROL_LONG_PRESS_TIMEOUT = 750; // ms
     private static final int BRIGHTNESS_CONTROL_LINGER_THRESHOLD = 20;
@@ -332,6 +334,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     private Animator mLightsOutAnimation;
     private Animator mLightsOnAnimation;
 
+    // status bar brightness control
     private boolean mBrightnessControl = true;
     private boolean mCustomHeader = false;
 
@@ -376,6 +379,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         }
     };
 
+    // status bar brightness control
     private final Runnable mLongPressBrightnessChange = new Runnable() {
         @Override
         public void run() {
@@ -476,6 +480,15 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.MENU_VISIBILITY),
                     false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.NOTIFICATION_SHORTCUTS_CONFIG),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.NOTIFICATION_SHORTCUTS_COLOR),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.NOTIFICATION_SHORTCUTS_COLOR_MODE),
+                    false, this, UserHandle.USER_ALL);
             update();
         }
 
@@ -524,6 +537,15 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                 prepareNavigationBarView();
                 if (mSearchPanelView != null) {
                     mSearchPanelView.updateSettings();
+                }
+            } else if (uri.equals(Settings.System.getUriFor(
+                    Settings.System.NOTIFICATION_SHORTCUTS_CONFIG))
+                || uri.equals(Settings.System.getUriFor(
+                    Settings.System.NOTIFICATION_SHORTCUTS_COLOR))
+                || uri.equals(Settings.System.getUriFor(
+                    Settings.System.NOTIFICATION_SHORTCUTS_COLOR_MODE))) {
+                if (mNotificationShortcutsLayout != null) {
+                    mNotificationShortcutsLayout.updateShortcuts();
                 }
             }
         }
@@ -904,6 +926,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
         Resources res = context.getResources();
 
+        // status bar brightness control
         mScreenWidth = (float) context.getResources().getDisplayMetrics().widthPixels;
         mMinBrightness = context.getResources().getInteger(
                 com.android.internal.R.integer.config_screenBrightnessDim);
@@ -1143,7 +1166,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             }
         }
 
-
         mWifiLabel = (TextView)mStatusBarWindow.findViewById(R.id.wifi_text);
         if (mWifiLabel != null) {
             mNetworkController.addWifiLabelView(mWifiLabel);
@@ -1278,6 +1300,12 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(ACTION_DEMO);
+        filter.addAction(Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE);
+        filter.addAction(Intent.ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE);
+        filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        filter.addAction(Intent.ACTION_PACKAGE_CHANGED);
+        filter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        filter.addDataScheme("package");
         context.registerReceiver(mBroadcastReceiver, filter);
 
         // listen for USER_SETUP_COMPLETE setting (per-user)
@@ -3699,6 +3727,23 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                             Log.w(TAG, "Error running demo command, intent=" + intent, t);
                         }
                     }
+                }
+            } else if (Intent.ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE.equals(action)
+                || Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE.equals(action)
+                || Intent.ACTION_PACKAGE_REMOVED.equals(action)
+                || Intent.ACTION_PACKAGE_CHANGED.equals(action)
+                || Intent.ACTION_PACKAGE_ADDED.equals(action)) {
+
+                if (mSearchPanelView != null && mSearchPanelView.hasAppBinded()) {
+                    mSearchPanelView.updateSettings();
+                }
+                if (mNotificationShortcutsLayout != null
+                        && mNotificationShortcutsLayout.hasAppBinded()) {
+                    mNotificationShortcutsLayout.updateShortcuts();
+                }
+                if (mNavigationBarView != null && mNavigationBarView.hasAppBinded()) {
+                    mNavigationBarView.recreateNavigationBar();
+                    prepareNavigationBarView();
                 }
             }
         }
