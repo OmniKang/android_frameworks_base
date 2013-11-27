@@ -5295,6 +5295,13 @@ public final class Settings {
         public static final String ADVANCED_REBOOT = "advanced_reboot";
 
         /**
+         * Whether to display the 'Wipe data' and 'Force close' options in the notification
+         * area and in the recent app list
+         * @hide
+         */
+        public static final String DEVELOPMENT_SHORTCUT = "development_shortcut";
+
+        /**
          * This are the settings to be backed up.
          *
          * NOTE: Settings are backed up and restored in the order they appear
@@ -5345,6 +5352,7 @@ public final class Settings {
             UI_NIGHT_MODE,
             UI_INVERTED_MODE,
             ADVANCED_REBOOT,
+            DEVELOPMENT_SHORTCUT
         };
 
         /**
