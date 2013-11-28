@@ -41,6 +41,7 @@ import android.graphics.drawable.LevelListDrawable;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.WifiDisplayStatus;
 import android.net.ConnectivityManager;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -64,6 +65,7 @@ import android.view.WindowManagerGlobal;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.android.settings.wifi.WifiApEnabler;
 import com.android.systemui.BatteryMeterView;
 import com.android.systemui.BatteryCircleMeterView;
 import com.android.systemui.R;
@@ -120,6 +122,8 @@ class QuickSettings {
     private BatteryMeterView mBattery;
     private BatteryCircleMeterView mCircleBattery;
     private boolean mBatteryHasPercent;
+
+    private WifiApEnabler mWifiApEnabler;
 
     // The set of QuickSettingsTiles that have dynamic spans (and need to be updated on
     // configuration change)
@@ -513,17 +517,9 @@ class QuickSettings {
         wifiTileBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int ap_enable;
-                try {
-                    ap_enable = Settings.System.getIntForUser(mContext.getContentResolver(),
-                            Settings.System.ENABLE_WIFI_AP,
-                            UserHandle.USER_CURRENT);
-                } catch (SettingNotFoundException snfe) {
-                    ap_enable = 0;
-                }
-                Settings.System.putIntForUser(mContext.getContentResolver(),
-                    Settings.System.ENABLE_WIFI_AP, ap_enable != 0 ? 0 : 1,
-                    UserHandle.USER_CURRENT);
+                final Activity activity = getActivity();
+                mWifiApEnabler = new WifiApEnabler(activity, mEnableWifiAp);
+                mWifiApEnabler.setSoftapEnabled(true);
             }} );
 
         mModel.addWifiBackTile(wifiTileBack, new QuickSettingsModel.RefreshCallback() {
