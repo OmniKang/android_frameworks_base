@@ -493,16 +493,37 @@ class QuickSettings {
 
         final ConnectivityManager cm =
                 (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if (LONG_PRESS_TOGGLES) {
+            wifiTileBack.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (cm.getTetherableWifiRegexs().length != 0) {
+                        Intent intent = new Intent();
+                            intent.setComponent(new ComponentName(
+                                    "com.android.settings",
+                                    "com.android.settings.Settings$TetherSettingsActivity"));
+                            startSettingsActivity(intent);
+                    }
+                    return true;
+                }
+            });
+        }
+
         wifiTileBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (cm.getTetherableWifiRegexs().length != 0) {
-                    Intent intent = new Intent();
-                        intent.setComponent(new ComponentName(
-                                "com.android.settings",
-                                "com.android.settings.Settings$TetherSettingsActivity"));
-                        startSettingsActivity(intent);
+                int ap_enable;
+                try {
+                    ap_enable = Settings.System.getIntForUser(mContext.getContentResolver(),
+                            Settings.System.ENABLE_WIFI_AP,
+                            UserHandle.USER_CURRENT);
+                } catch (SettingNotFoundException snfe) {
+                    ap_enable = 0;
                 }
+                Settings.System.putIntForUser(mContext.getContentResolver(),
+                    Settings.System.ENABLE_WIFI_AP, ap_enable != 0 ? 0 : 1,
+                    UserHandle.USER_CURRENT);
             }} );
 
         mModel.addWifiBackTile(wifiTileBack, new QuickSettingsModel.RefreshCallback() {
