@@ -539,17 +539,43 @@ class QuickSettings {
                   });
                   final ConnectivityManager cm =
                          (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+                  if (LONG_PRESS_TOGGLES) {
+                      wifiTileBack.setOnLongClickListener(new View.OnLongClickListener() {
+                          @Override
+                          public boolean onLongClick(View v) {
+                              if (cm.getTetherableWifiRegexs().length != 0) {
+                                  Intent intent = new Intent();
+                                  intent.setComponent(new ComponentName(
+                                          "com.android.settings",
+                                          "com.android.settings.Settings$TetherSettingsActivity"));
+                                  startSettingsActivity(intent);
+                              }
+                              return true;
+                          }
+                      });
+                  }
+
                   wifiTile.setBackOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (cm.getTetherableWifiRegexs().length != 0) {
-                                Intent intent = new Intent();
-                                intent.setComponent(new ComponentName(
-                                      "com.android.settings",
-                                      "com.android.settings.Settings$TetherSettingsActivity"));
-                                startSettingsActivity(intent);
-                            }
-                  }} );
+                      @Override
+                      public void onClick(View v) {
+                          int ap_state = mWifiManager.getWifiApState();
+                          switch (ap_state) {
+                              case WifiManager.WIFI_AP_STATE_ENABLING:
+                              case WifiManager.WIFI_AP_STATE_ENABLED:
+                                  setSoftapEnabled(false);
+                                  wifiTileBack.setFunction(
+                                          mContext.getString(R.string.wifi_ap_disabled));
+                                  break;
+                              case WifiManager.WIFI_AP_STATE_DISABLING:
+                              case WifiManager.WIFI_AP_STATE_DISABLED:
+                              default:
+                                  setSoftapEnabled(true);
+                                  wifiTileBack.setFunction(
+                                          mContext.getString(R.string.wifi_ap_enabled));
+                                  break;
+                          }
+                      }} );
 
                   mModel.addWifiBackTile(wifiTile.getBack(), new QuickSettingsModel.RefreshCallback() {
                         @Override
@@ -562,6 +588,21 @@ class QuickSettings {
                                 mContext.getString(R.string.quick_settings_wifi_tethering_label));
                             } else {
                                 wifiTile.setBackFunction("");
+                            }
+
+                            int ap_state = mWifiManager.getWifiApState();
+                            switch (ap_state) {
+                                case WifiManager.WIFI_AP_STATE_ENABLING:
+                                case WifiManager.WIFI_AP_STATE_ENABLED:
+                                    wifiTileBack.setFunction(
+                                            mContext.getString(R.string.wifi_ap_enabled));
+                                    break;
+                                case WifiManager.WIFI_AP_STATE_DISABLING:
+                                case WifiManager.WIFI_AP_STATE_DISABLED:
+                                default:
+                                    wifiTileBack.setFunction(
+                                            mContext.getString(R.string.wifi_ap_disabled));
+                                    break;
                             }
                         }
                   });
@@ -1329,6 +1370,38 @@ class QuickSettings {
 
         }
     };
+
+    private void setSoftapEnabled(boolean enable) {
+        final ContentResolver cr = mContext.getContentResolver();
+        /**
+         * Disable Wifi if enabling tethering
+         */
+        int wifiState = mWifiManager.getWifiState();
+        if (enable && ((wifiState == WifiManager.WIFI_STATE_ENABLING) ||
+                    (wifiState == WifiManager.WIFI_STATE_ENABLED))) {
+            mWifiManager.setWifiEnabled(false);
+            Settings.Global.putInt(cr, Settings.Global.WIFI_SAVED_STATE, 1);
+        }
+
+        // Turn on the Wifi AP
+        mWifiManager.setWifiApEnabled(null, enable);
+
+        /**
+         *  If needed, restore Wifi on tether disable
+         */
+        if (!enable) {
+            int wifiSavedState = 0;
+            try {
+                wifiSavedState = Settings.Global.getInt(cr, Settings.Global.WIFI_SAVED_STATE);
+            } catch (Settings.SettingNotFoundException e) {
+                // Do nothing here
+            }
+            if (wifiSavedState == 1) {
+                mWifiManager.setWifiEnabled(true);
+                Settings.Global.putInt(cr, Settings.Global.WIFI_SAVED_STATE, 0);
+            }
+        }
+    }
 
     private abstract static class NetworkActivityCallback
             implements QuickSettingsModel.RefreshCallback {
