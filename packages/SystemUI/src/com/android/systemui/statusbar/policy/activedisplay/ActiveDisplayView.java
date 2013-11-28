@@ -931,8 +931,6 @@ public class ActiveDisplayView extends FrameLayout {
                         iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
                         mOverflowNotifications.addView(iv, mOverflowLayoutParams);
                     }
-                } catch (RemoteException re) {
-                } catch (NullPointerException npe) {
                 }
             }
         });
