@@ -159,12 +159,6 @@ public final class NavigationBarTransitions extends BarTransitions {
         }
     }
 
-    private void setKeyButtonViewQuiescentAlpha(View button, float alpha, boolean animate) {
-        if (button instanceof KeyButtonView) {
-            ((KeyButtonView) button).setQuiescentAlpha(alpha, animate);
-        }
-    }
-
     private void applyLightsOut(boolean lightsOut, boolean animate, boolean force) {
         if (!force && lightsOut == mLightsOut) return;
 
