@@ -100,8 +100,8 @@ public final class NavigationBarTransitions extends BarTransitions {
     }
     
     private void setKeyButtonViewQuiescentAlpha(View button, float alpha, boolean animate) {
-        if (button != null) {
-            setKeyButtonViewQuiescentAlpha(button, alpha, animate);
+        if (button != null && button instanceof KeyButtonView) {
+            ((KeyButtonView) button).setQuiescentAlpha(alpha, animate);
         }
     }
 
