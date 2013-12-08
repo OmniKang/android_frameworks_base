@@ -96,6 +96,10 @@ public final class NavigationBarTransitions extends BarTransitions {
 
     private void setKeyButtonViewQuiescentAlpha(ButtonInfo info, float alpha, boolean animate) {
         View button = mView.findViewWithTag(info);
+        setKeyButtonViewQuiescentAlpha(button, alpha, animate);
+    }
+    
+    private void setKeyButtonViewQuiescentAlpha(View button, float alpha, boolean animate) {
         if (button != null) {
             setKeyButtonViewQuiescentAlpha(button, alpha, animate);
         }
@@ -110,9 +114,26 @@ public final class NavigationBarTransitions extends BarTransitions {
         float backAlpha = 0;
         backAlpha = maxVisibleQuiescentAlpha(backAlpha, mView.getSearchLight());
         backAlpha = maxVisibleQuiescentAlpha(backAlpha, mView.getCameraButton());
-        backAlpha = maxVisibleQuiescentAlpha(backAlpha, mView.getHomeButton());
-        backAlpha = maxVisibleQuiescentAlpha(backAlpha, mView.getRecentsButton());
-        backAlpha = maxVisibleQuiescentAlpha(backAlpha, mView.getMenuButton());
+        
+        View button = mView.findViewWithTag(NavbarEditor.NAVBAR_HOME);
+        backAlpha = maxVisibleQuiescentAlpha(backAlpha, button);
+        button = mView.findViewWithTag(NavbarEditor.NAVBAR_RECENT);
+        if (button != null) {
+            backAlpha = maxVisibleQuiescentAlpha(backAlpha, button);
+        }
+        button = mView.findViewWithTag(NavbarEditor.NAVBAR_CONDITIONAL_MENU);
+        if (button != null) {
+            backAlpha = maxVisibleQuiescentAlpha(backAlpha, button);
+        }
+        button = mView.findViewWithTag(NavbarEditor.NAVBAR_ALWAYS_MENU);
+        if (button != null) {
+            backAlpha = maxVisibleQuiescentAlpha(backAlpha, button);
+        }
+        button = mView.findViewWithTag(NavbarEditor.NAVBAR_MENU_BIG);
+        if (button != null) {
+            backAlpha = maxVisibleQuiescentAlpha(backAlpha, button);
+        }
+        
         if (backAlpha > 0) {
             setKeyButtonViewQuiescentAlpha(NavbarEditor.NAVBAR_BACK, backAlpha, animate);
         }
