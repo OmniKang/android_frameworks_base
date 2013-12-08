@@ -141,10 +141,12 @@ public class NavigationBarView extends LinearLayout {
         public void onBackAltCleared() {
             // When dismissing ime during unlock, force the back button to run the same appearance
             // animation as home (if we catch this condition early enough).
-            if (!mBackTransitioning && getBackButton().getVisibility() == VISIBLE
-                    && mHomeAppearing && getHomeButton().getAlpha() == 0) {
-                getBackButton().setAlpha(0);
-                ValueAnimator a = ObjectAnimator.ofFloat(getBackButton(), "alpha", 0, 1);
+            View back = mCurrentView.findViewWithTag(NavbarEditor.NAVBAR_BACK);
+            View home = mCurrentView.findViewWithTag(NavbarEditor.NAVBAR_HOME);
+            if (!mBackTransitioning && back.getVisibility() == VISIBLE
+                    && mHomeAppearing && home.getAlpha() == 0) {
+                back.setAlpha(0);
+                ValueAnimator a = ObjectAnimator.ofFloat(back, "alpha", 0, 1);
                 a.setStartDelay(mStartDelay);
                 a.setDuration(mDuration);
                 a.setInterpolator(mInterpolator);
@@ -414,7 +416,7 @@ public class NavigationBarView extends LinearLayout {
                     : (mVertical ? mBackLandIcon : mBackIcon));
         }
 
-        button = mCurrentView.findViewWithTag(NavbarEditor.NAVBAR_RECENT);
+        button = (ImageView) mCurrentView.findViewWithTag(NavbarEditor.NAVBAR_RECENT);
         if (button != null) {
             button.setImageDrawable(mVertical ? mRecentLandIcon : mRecentIcon);
         }
