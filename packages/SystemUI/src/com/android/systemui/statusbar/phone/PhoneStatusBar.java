@@ -760,13 +760,17 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
             mNetworkController.addWifiLabelView(mWifiLabel);
             mWifiLabel.addTextChangedListener(new TextWatcher() {
                 public void afterTextChanged(Editable s) {
+                    mWifiLabel.addTextChangedListener(this);
                 }
                 public void beforeTextChanged(CharSequence s, int start, int count,
                         int after) {
+                    mWifiLabel.removeTextChangedListener(this);
                 }
                 public void onTextChanged(CharSequence s, int start, int before,
                         int count) {
                     if (count > 0) {
+                        String text = s.toString();
+                        mWifiLabel.setText(text.replace("\"", ""));
                         mWifiView.setVisibility(View.VISIBLE);
                     } else {
                         mWifiView.setVisibility(View.GONE);
