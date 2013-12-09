@@ -67,6 +67,7 @@ import android.provider.Settings;
 import android.provider.AlarmClock;
 import android.service.notification.StatusBarNotification;
 import android.text.Editable;
+import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.EventLog;
@@ -763,18 +764,19 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
         if (mWifiLabel != null) {
             mNetworkController.addWifiLabelView(mWifiLabel);
             mWifiLabel.addTextChangedListener(new TextWatcher() {
+                String text;
                 public void afterTextChanged(Editable s) {
+                    mWifiLabel.removeTextChangedListener(this);
+                    s = new SpannableStringBuilder(text);
                     mWifiLabel.addTextChangedListener(this);
                 }
                 public void beforeTextChanged(CharSequence s, int start, int count,
                         int after) {
-                    mWifiLabel.removeTextChangedListener(this);
                 }
                 public void onTextChanged(CharSequence s, int start, int before,
                         int count) {
+                    text = s.toString().replace("\"", "");
                     if (count > 0) {
-                        String text = s.toString();
-                        mWifiLabel.setText(text.replace("\"", ""));
                         mWifiView.setVisibility(View.VISIBLE);
                     } else {
                         mWifiView.setVisibility(View.GONE);
