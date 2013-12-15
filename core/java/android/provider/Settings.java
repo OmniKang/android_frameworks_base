@@ -3411,6 +3411,13 @@ public final class Settings {
         };
 
         /**
+         * Should call status sounds be player
+         *
+         * @hide
+         */
+        public static final String CALL_END_SOUND = "call_end_sound";
+
+        /**
          * Forces formal text input.  1 to replace emoticon key with enter key.
          * @hide
          */
