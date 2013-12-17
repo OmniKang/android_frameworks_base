@@ -568,6 +568,7 @@ class QuickSettings {
 
         if (mModel.deviceHasMobileData()) {
             // RSSI
+
             QuickSettingsTileView rssiTile = (QuickSettingsTileView)
                     inflater.inflate(R.layout.quick_settings_tile, parent, false);
             rssiTile.setContent(R.layout.quick_settings_tile_rssi, inflater);
