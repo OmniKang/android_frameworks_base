@@ -157,7 +157,6 @@ public class NavigationBarView extends LinearLayout {
     private class NavTransitionListener implements TransitionListener {
         private boolean mBackTransitioning;
         private boolean mAppearing;
-        private boolean mHomeAppearing;
         private long mStartDelay;
         private long mDuration;
         private TimeInterpolator mInterpolator;
@@ -194,8 +193,8 @@ public class NavigationBarView extends LinearLayout {
             final View home = getHomeButton();
             if (!mBackTransitioning
                     && back != null && back.getVisibility() == VISIBLE
-                    && mHomeAppearing
-                    && home != null && home.getAlpha() == 0) {
+                    && mAppearing
+                    && (mDisabledFlags & View.STATUS_BAR_DISABLE_HOME) == 0) {
                 back.setAlpha(0);
                 ValueAnimator a = ObjectAnimator.ofFloat(back, "alpha", 0, 1);
                 a.setStartDelay(mStartDelay);
