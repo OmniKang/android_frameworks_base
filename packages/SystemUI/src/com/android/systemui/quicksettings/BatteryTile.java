@@ -70,6 +70,16 @@ public class BatteryTile extends QuickSettingsTile implements BatteryStateChange
                 return true;
             }
         };
+        qsc.registerObservedContent(Settings.System.getUriFor(
+                Settings.System.STATUS_BAR_BATTERY), this);
+        qsc.registerObservedContent(Settings.System.getUriFor(
+                Settings.System.STATUS_BAR_BATTERY_COLOR), this);
+        qsc.registerObservedContent(Settings.System.getUriFor(
+                Settings.System.STATUS_BAR_BATTERY_TEXT_COLOR), this);
+        qsc.registerObservedContent(Settings.System.getUriFor(
+                Settings.System.STATUS_BAR_BATTERY_TEXT_CHARGING_COLOR), this);
+        qsc.registerObservedContent(Settings.System.getUriFor(
+                Settings.System.STATUS_BAR_CIRCLE_BATTERY_ANIMATIONSPEED), this);
     }
 
     @Override
@@ -114,7 +124,12 @@ public class BatteryTile extends QuickSettingsTile implements BatteryStateChange
     }
 
     private synchronized void updateTile() {
-        boolean batteryHasPercent = BatteryMeterView.SHOW_100_PERCENT;
+        int batteryStyle = Settings.System.getIntForUser(mContext.getContentResolver(),
+            Settings.System.STATUS_BAR_BATTERY, 0, UserHandle.USER_CURRENT);
+        boolean batteryHasPercent = batteryStyle == BatteryMeterView.BATTERY_STYLE_ICON_PERCENT
+            || batteryStyle == BatteryMeterView.BATTERY_STYLE_PERCENT
+            || batteryStyle == BatteryMeterView.BATTERY_STYLE_CIRCLE_PERCENT
+            || batteryStyle == BatteryMeterView.BATTERY_STYLE_DOTTED_CIRCLE_PERCENT;
         if (mBatteryLevel == 100) {
             mLabel = mContext.getString(R.string.quick_settings_battery_charged_label);
         } else {
