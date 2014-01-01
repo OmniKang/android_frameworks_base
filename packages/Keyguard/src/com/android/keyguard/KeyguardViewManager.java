@@ -87,10 +87,6 @@ public class KeyguardViewManager {
     private boolean mScreenOn = false;
     private LockPatternUtils mLockPatternUtils;
     
-    private Drawable mCustomBackground = null;
-    private int BlurRadius = 14;
-    private boolean mSeeThrough = false;
-
     private NotificationHostView mNotificationView;
     private NotificationViewManager mNotificationViewManager;
     private boolean mLockscreenNotifications = true;
@@ -115,7 +111,6 @@ public class KeyguardViewManager {
 
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
-
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.LOCKSCREEN_SEE_THROUGH), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
@@ -125,6 +120,7 @@ public class KeyguardViewManager {
         @Override
         public void onChange(boolean selfChange) {
             setKeyguardParams();
+            updateSettings();
             mViewManager.updateViewLayout(mKeyguardHost, mWindowLayoutParams);
         }
     }
@@ -132,7 +128,6 @@ public class KeyguardViewManager {
     private void updateSettings() {
         mLockscreenNotifications = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.LOCKSCREEN_NOTIFICATIONS, mLockscreenNotifications ? 1 : 0) == 1;
-        if(!mSeeThrough) mCustomBackground = null;
         if(mLockscreenNotifications && mNotificationViewManager == null) {
             mNotificationViewManager = new NotificationViewManager(mContext, this);
         } else if(!mLockscreenNotifications && mNotificationViewManager != null) {
@@ -397,10 +392,6 @@ public class KeyguardViewManager {
             mKeyguardHost.removeAllViews();
             inflateKeyguardView(options);
             mKeyguardView.requestFocus();
-        }
-
-	if(mCustomBackground != null) {
-            mKeyguardHost.setCustomBackground(mCustomBackground);
         }
 
         updateUserActivityTimeoutInWindowLayoutParams();
