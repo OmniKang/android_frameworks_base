@@ -58,6 +58,7 @@ import android.os.IRemoteCallback;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
+import android.os.Process;
 import android.os.PowerManager;
 import android.os.Process;
 import android.os.RemoteException;
@@ -678,7 +679,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             updateSettings();
         }
 
-        @Override public void onChange(boolean selfChange) {
+        @Override
+        public void onChange(boolean selfChange) {
             updateSettings();
             updateRotation(false);
         }
@@ -3025,8 +3027,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     Runnable mKillTask = new Runnable() {
         public void run() {
             final Intent intent = new Intent(Intent.ACTION_MAIN);
-            final ActivityManager am = (ActivityManager)mContext
-                    .getSystemService(Activity.ACTIVITY_SERVICE);
             String defaultHomePackage = "com.android.launcher";
             intent.addCategory(Intent.CATEGORY_HOME);
             final ResolveInfo res = mContext.getPackageManager().resolveActivity(intent, 0);
@@ -3034,14 +3034,35 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 defaultHomePackage = res.activityInfo.packageName;
             }
             boolean targetKilled = false;
-            String packageName = am.getRunningTasks(1).get(0).topActivity.getPackageName();
-            if (!defaultHomePackage.equals(packageName)) {
-                am.forceStopPackage(packageName);
-                targetKilled = true;
-            }
-            if (targetKilled) {
-                performHapticFeedbackLw(null, HapticFeedbackConstants.LONG_PRESS, false);
-                Toast.makeText(mContext, R.string.app_killed_message, Toast.LENGTH_SHORT).show();
+            final ActivityManager am = (ActivityManager) mContext
+                    .getSystemService(Activity.ACTIVITY_SERVICE);
+            List<RunningAppProcessInfo> apps = am.getRunningAppProcesses();
+            for (RunningAppProcessInfo appInfo : apps) {
+                int uid = appInfo.uid;
+                // Make sure it's a foreground user application (not system,
+                // root, phone, etc.)
+                if (uid >= Process.FIRST_APPLICATION_UID && uid <= Process.LAST_APPLICATION_UID
+                        && appInfo.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+                    if (appInfo.pkgList != null && (appInfo.pkgList.length > 0)) {
+                        for (String pkg : appInfo.pkgList) {
+                            if (!pkg.equals("com.android.systemui")
+                                    && !pkg.equals(defaultHomePackage)) {
+                                am.forceStopPackage(pkg);
+                                targetKilled = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        Process.killProcess(appInfo.pid);
+                        targetKilled = true;
+                    }
+                }
+                if (targetKilled) {
+                    performHapticFeedbackLw(null, HapticFeedbackConstants.LONG_PRESS, false);
+                    Toast.makeText(mContext,
+                        com.android.internal.R.string.app_killed_message, Toast.LENGTH_SHORT).show();
+                    break;
+                }
             }
         }
     };
