@@ -52,6 +52,8 @@
     <string name="network_3G" translatable="false">2G/3G Pref</string>
     <string name="network_2G" translatable="false">2G Only</string>
 
+    <string name="quick_settings_quiethours_label">Quiet hours</string>
+    <string name="quick_settings_quiethours_off_label">Quiet hours off</string>
     <string name="quick_settings_location_mode_high">High</string>
     <string name="quick_settings_location_mode_battery">Battery</string>
     <string name="quick_settings_location_mode_sensors">Device</string>
