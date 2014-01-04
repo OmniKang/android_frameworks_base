@@ -77,7 +77,6 @@ import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.UserHandle;
 import android.provider.Settings;
-import android.provider.Settings.SettingNotFoundException;
 import android.text.TextUtils;
 import android.text.style.SuggestionSpan;
 import android.util.AtomicFile;
@@ -391,6 +390,8 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
     private final IPackageManager mIPackageManager;
 
     class SettingsObserver extends ContentObserver {
+        String mLastEnabled = "";
+
         SettingsObserver(Handler handler) {
             super(handler);
             ContentResolver resolver = mContext.getContentResolver();
@@ -400,13 +401,18 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
                     Settings.Secure.ENABLED_INPUT_METHODS), false, this);
             resolver.registerContentObserver(Settings.Secure.getUriFor(
                     Settings.Secure.SELECTED_INPUT_METHOD_SUBTYPE), false, this);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.STATUS_BAR_IME_SWITCHER),
-                    false, this, UserHandle.USER_ALL);
         }
 
         @Override public void onChange(boolean selfChange) {
-            updateFromSettingsLocked(true);
+            synchronized (mMethodMap) {
+                boolean enabledChanged = false;
+                String newEnabled = mSettings.getEnabledInputMethodsStr();
+                if (!mLastEnabled.equals(newEnabled)) {
+                    mLastEnabled = newEnabled;
+                    enabledChanged = true;
+                }
+                updateFromSettingsLocked(enabledChanged);
+            }
         }
     }
 
@@ -833,7 +839,9 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
                 mStatusBar = statusBar;
                 statusBar.setIconVisibility("ime", false);
                 updateImeWindowStatusLocked();
-                if (isShowOngoingImeSwitcherForPhones()) {
+                mShowOngoingImeSwitcherForPhones = mRes.getBoolean(
+                        com.android.internal.R.bool.show_ongoing_ime_switcher);
+                if (mShowOngoingImeSwitcherForPhones) {
                     mWindowManagerService.setOnHardKeyboardStatusChangeListener(
                             mHardKeyboardListener);
                 }
@@ -1645,21 +1653,6 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
             mCurMethodId = null;
             unbindCurrentMethodLocked(true, false);
         }
-
-        mShowOngoingImeSwitcherForPhones = isShowOngoingImeSwitcherForPhones();
-    }
-
-    private boolean isShowOngoingImeSwitcherForPhones() {
-        boolean isEnabled;
-        try {
-             isEnabled =
-                   Settings.System.getIntForUser(mContext.getContentResolver(),
-                   Settings.System.STATUS_BAR_IME_SWITCHER, UserHandle.USER_CURRENT) == 1;
-        } catch (SettingNotFoundException e) {
-             isEnabled = mRes.getBoolean(
-                   com.android.internal.R.bool.show_ongoing_ime_switcher);
-        }
-        return isEnabled;
     }
 
     /* package */ void setInputMethodLocked(String id, int subtypeId) {
