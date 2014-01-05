@@ -62,8 +62,6 @@ import android.security.KeyChain;
 import android.provider.Settings.SettingNotFoundException;
 import android.util.Log;
 import android.util.Pair;
-import android.util.TypedValue;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -309,11 +307,8 @@ class QuickSettings {
     }
 
     private void setupQuickSettings() {
-        // Setup the tiles that we are going to be showing (including the temporary ones)
-        LayoutInflater inflater = LayoutInflater.from(mContext);
-
-        addTiles(mContainerView, inflater, false, false);
-        addTemporaryTiles(mContainerView, inflater);
+        addTiles(mContainerView, false, false);
+        addTemporaryTiles(mContainerView);
 
         queryForUserInformation();
         queryForSslCaCerts();
@@ -360,7 +355,7 @@ class QuickSettings {
         mModel.refreshBatteryTile();
     }
 
-    private void addTiles(ViewGroup parent, LayoutInflater inflater, boolean addMissing, boolean reset) {
+    private void addTiles(ViewGroup parent, boolean addMissing, boolean reset) {
         // Load all the customizable tiles. If not yet modified by the user, load default ones.
         // After enabled tiles are loaded, proceed to load missing tiles and set them to View.GONE.
         // If all the tiles were deleted, they are still loaded, but their visibility is changed
@@ -380,9 +375,8 @@ class QuickSettings {
             if (addMissing) addTile = !addTile;
             if (addTile) {
                if (Tile.USER.toString().equals(tile.toString())) { // User
-                   QuickSettingsTileView userTile = (QuickSettingsTileView)
-                           inflater.inflate(R.layout.quick_settings_tile, parent, false);
-                   userTile.setContent(R.layout.quick_settings_tile_user, inflater);
+                   final QuickSettingsBasicUserTile userTile
+                            = new QuickSettingsBasicUserTile(mContext);
                    userTile.setTileId(Tile.USER);
                    userTile.setOnClickListener(new View.OnClickListener() {
                        @Override
@@ -422,10 +416,8 @@ class QuickSettings {
                        @Override
                        public void refreshView(QuickSettingsTileView view, State state) {
                            UserState us = (UserState) state;
-                           ImageView iv = (ImageView) view.findViewById(R.id.user_imageview);
-                           TextView tv = (TextView) view.findViewById(R.id.user_textview);
-                           tv.setText(state.label);
-                           iv.setImageDrawable(us.avatar);
+                           userTile.setText(state.label);
+                           userTile.setImageDrawable(us.avatar);
                            view.setContentDescription(mContext.getString(
                                   R.string.accessibility_quick_settings_user, state.label));
                        }
@@ -578,10 +570,8 @@ class QuickSettings {
                } else if (Tile.RSSI.toString().equals(tile.toString())) { // rssi tile
                   if (mModel.deviceHasMobileData()) {
                       // RSSI
-                      QuickSettingsTileView rssiTile = (QuickSettingsTileView)
-                              inflater.inflate(R.layout.quick_settings_tile, parent, false);
+                      final QuickSettingsBasicNetworkTile rssiTile = new QuickSettingsBasicNetworkTile(mContext);
                       rssiTile.setTileId(Tile.RSSI);
-                      rssiTile.setContent(R.layout.quick_settings_tile_rssi, inflater);
                       final ConnectivityManager cms =
                          (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
                       rssiTile.setOnClickListener(new View.OnClickListener() {
@@ -605,13 +595,9 @@ class QuickSettings {
                             @Override
                             public void refreshView(QuickSettingsTileView view, State state) {
                                 RSSIState rssiState = (RSSIState) state;
-                                ImageView iv = (ImageView) view.findViewById(R.id.rssi_image);
-                                ImageView iov = (ImageView) view.findViewById(R.id.rssi_overlay_image);
-                                TextView tv = (TextView) view.findViewById(R.id.rssi_textview);
-                                TextView itv = (TextView) view.findViewById(R.id.rssi_type_text);
                                 // Force refresh
-                                iv.setImageDrawable(null);
-                                iv.setImageResource(rssiState.signalIconId);
+                                rssiTile.setImageDrawable(null);
+                                rssiTile.setImageResource(rssiState.signalIconId);
 
                                 if (rssiState.dataTypeIconId > 0) {
                                     iov.setImageResource(rssiState.dataTypeIconId);
@@ -622,11 +608,9 @@ class QuickSettings {
                                 }
                                 setActivity(view, rssiState);
 
-                                tv.setText(state.label);
-                                tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, view.getTextSizes());
-                                itv.setText(rssiState.networkType);
-                                itv.setTextSize(TypedValue.COMPLEX_UNIT_PX, view.getTextSizes());
-                                view.setContentDescription(mContext.getResources().getString(
+                                rssiTile.setText(state.label);
+                                rssiTile.setNetworkText(rssiState.networkType);
+                                rssiTile.setContentDescription(mContext.getResources().getString(
                                      R.string.accessibility_quick_settings_mobile,
                                      rssiState.signalContentDescription, rssiState.dataContentDescription,
                                      state.label));
@@ -662,8 +646,6 @@ class QuickSettings {
                                 public void refreshView(QuickSettingsTileView view, State state) {
                                     QuickSettingsModel.RotationLockState rotationLockState =
                                           (QuickSettingsModel.RotationLockState) state;
-                                    view.setVisibility(rotationLockState.visible
-                                          ? View.VISIBLE : View.GONE);
                                     if (state.iconId != 0) {
                                        // needed to flush any cached IDs
                                        rotationLockTile.setImageDrawable(null);
@@ -1096,29 +1078,29 @@ class QuickSettings {
                }
             }
         }
-        if(!addMissing) addTiles(parent, inflater, true, false);
+        if(!addMissing) addTiles(parent, true, false);
     }
 
-    private void addTemporaryTiles(final ViewGroup parent, final LayoutInflater inflater) {
+    private void addTemporaryTiles(final ViewGroup parent) {
         // Alarm tile
         final QuickSettingsBasicTile alarmTile
-                = new QuickSettingsBasicTile(mContext);
-        alarmTile.setTemporary(true);
+                    = new QuickSettingsBasicTile(mContext);
         alarmTile.setImageResource(R.drawable.ic_qs_alarm_on);
+        alarmTile.setTemporary(true);
         alarmTile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startSettingsActivity(new Intent(AlarmClock.ACTION_SHOW_ALARMS));
-            }
+             @Override
+             public void onClick(View v) {
+                 startSettingsActivity(new Intent(AlarmClock.ACTION_SHOW_ALARMS));
+             }
         });
         mModel.addAlarmTile(alarmTile, new QuickSettingsModel.RefreshCallback() {
-            @Override
-            public void refreshView(QuickSettingsTileView unused, State alarmState) {
-                alarmTile.setText(alarmState.label);
-                alarmTile.setVisibility(alarmState.enabled ? View.VISIBLE : View.GONE);
-                alarmTile.setContentDescription(mContext.getString(
-                        R.string.accessibility_quick_settings_alarm, alarmState.label));
-            }
+             @Override
+             public void refreshView(QuickSettingsTileView unused, State alarmState) {
+                 alarmTile.setText(alarmState.label);
+                 alarmTile.setVisibility(alarmState.enabled ? View.VISIBLE : View.GONE);
+                 alarmTile.setContentDescription(mContext.getString(
+                           R.string.accessibility_quick_settings_alarm, alarmState.label));
+             }
         });
         parent.addView(alarmTile);
 
@@ -1194,22 +1176,6 @@ class QuickSettings {
             }
         });
         parent.addView(bugreportTile);
-        /*
-        QuickSettingsTileView mediaTile = (QuickSettingsTileView)
-                inflater.inflate(R.layout.quick_settings_tile, parent, false);
-        mediaTile.setContent(R.layout.quick_settings_tile_media, inflater);
-        parent.addView(mediaTile);
-        QuickSettingsTileView imeTile = (QuickSettingsTileView)
-                inflater.inflate(R.layout.quick_settings_tile, parent, false);
-        imeTile.setContent(R.layout.quick_settings_tile_ime, inflater);
-        imeTile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                parent.removeViewAt(0);
-            }
-        });
-        parent.addView(imeTile);
-        */
 
         // SSL CA Cert Warning.
         final QuickSettingsBasicTile sslCaCertWarningTile =
@@ -1242,10 +1208,9 @@ class QuickSettings {
     }
 
     public void updateTiles() {
-        // Setup the tiles that we are going to be showing (including the temporary ones)
-        LayoutInflater inflater = LayoutInflater.from(mContext);
-        addTiles(mContainerView, inflater, false, true);
-        addTemporaryTiles(mContainerView, inflater);
+        addTiles(mContainerView, false, true);
+        addTemporaryTiles(mContainerView);
+        updateResources();
     }
 
     void updateResources() {
@@ -1304,8 +1269,7 @@ class QuickSettings {
     }
 
     private void applyLocationEnabledStatus() {
-        mModel.onLocationSettingsChanged(
-                mLocationController.isLocationEnabled(), mLocationController.getLocationMode());
+        mModel.onLocationSettingsChanged(mLocationController.isLocationEnabled());
     }
 
     void reloadUserInfo() {
@@ -1365,38 +1329,6 @@ class QuickSettings {
 
         }
     };
-
-    private void setSoftapEnabled(boolean enable) {
-        final ContentResolver cr = mContext.getContentResolver();
-        /**
-         * Disable Wifi if enabling tethering
-         */
-        int wifiState = mWifiManager.getWifiState();
-        if (enable && ((wifiState == WifiManager.WIFI_STATE_ENABLING) ||
-                    (wifiState == WifiManager.WIFI_STATE_ENABLED))) {
-            mWifiManager.setWifiEnabled(false);
-            Settings.Global.putInt(cr, Settings.Global.WIFI_SAVED_STATE, 1);
-        }
-
-        // Turn on the Wifi AP
-        mWifiManager.setWifiApEnabled(null, enable);
-
-        /**
-         *  If needed, restore Wifi on tether disable
-         */
-        if (!enable) {
-            int wifiSavedState = 0;
-            try {
-                wifiSavedState = Settings.Global.getInt(cr, Settings.Global.WIFI_SAVED_STATE);
-            } catch (Settings.SettingNotFoundException e) {
-                // Do nothing here
-            }
-            if (wifiSavedState == 1) {
-                mWifiManager.setWifiEnabled(true);
-                Settings.Global.putInt(cr, Settings.Global.WIFI_SAVED_STATE, 0);
-            }
-        }
-    }
 
     private abstract static class NetworkActivityCallback
             implements QuickSettingsModel.RefreshCallback {
