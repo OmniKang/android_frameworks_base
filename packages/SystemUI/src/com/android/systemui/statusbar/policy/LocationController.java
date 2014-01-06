@@ -50,7 +50,7 @@ public class LocationController extends BroadcastReceiver {
         = new int[] {AppOpsManager.OP_MONITOR_HIGH_POWER_LOCATION};
 
     private Context mContext;
-
+    private int mLastlocationMode;
     private AppOpsManager mAppOpsManager;
     private StatusBarManager mStatusBarManager;
 
@@ -71,7 +71,7 @@ public class LocationController extends BroadcastReceiver {
          * @param locationMode value indicates the type of location mode
          *                        which is enabled in settings.
          */
-        public void onLocationSettingsChanged(boolean locationEnabled, int locationMode);
+        public void onLocationSettingsChanged(boolean locationEnabled);
     }
 
     public LocationController(Context context) {
@@ -101,6 +101,7 @@ public class LocationController extends BroadcastReceiver {
         // Examine the current location state and initialize the status view.
         updateActiveLocationRequests();
         refreshViews();
+        mLastlocationMode = Settings.Secure.LOCATION_MODE_HIGH_ACCURACY;
     }
 
     /**
@@ -129,15 +130,27 @@ public class LocationController extends BroadcastReceiver {
         final ContentResolver cr = mContext.getContentResolver();
         // When enabling location, a user consent dialog will pop up, and the
         // setting won't be fully enabled until the user accepts the agreement.
-        final int lastMode = Settings.Secure.getIntForUser(cr,
-                Settings.Secure.LOCATION_LAST_MODE,
-                Settings.Secure.LOCATION_MODE_HIGH_ACCURACY, currentUserId);
         int mode = enabled
-                ? lastMode : Settings.Secure.LOCATION_MODE_OFF;
+                ? mLastlocationMode : Settings.Secure.LOCATION_MODE_OFF;
         // QuickSettings always runs as the owner, so specifically set the settings
         // for the current foreground user.
         return Settings.Secure
                 .putIntForUser(cr, Settings.Secure.LOCATION_MODE, mode, currentUserId);
+    }
+
+    public boolean setBackLocationEnabled(int location) {
+        switch (location) {
+            case Settings.Secure.LOCATION_MODE_SENSORS_ONLY:
+                location = Settings.Secure.LOCATION_MODE_BATTERY_SAVING;
+                break;
+            case Settings.Secure.LOCATION_MODE_BATTERY_SAVING:
+                location = Settings.Secure.LOCATION_MODE_HIGH_ACCURACY;
+                break;
+            case Settings.Secure.LOCATION_MODE_HIGH_ACCURACY:
+                location = Settings.Secure.LOCATION_MODE_SENSORS_ONLY;
+                break;
+        }
+        return setLocationMode(location);
     }
 
     public boolean setLocationMode(int mode) {
@@ -145,6 +158,7 @@ public class LocationController extends BroadcastReceiver {
         if (isUserLocationRestricted(currentUserId)) {
             return false;
         }
+        mLastlocationMode = mode;
         final ContentResolver cr = mContext.getContentResolver();
         // QuickSettings always runs as the owner, so specifically set the settings
         // for the current foreground user.
@@ -152,31 +166,20 @@ public class LocationController extends BroadcastReceiver {
                 .putIntForUser(cr, Settings.Secure.LOCATION_MODE, mode, currentUserId);
     }
 
-    public boolean switchLocationMode(int currentMode) {
-        switch (currentMode) {
-            case Settings.Secure.LOCATION_MODE_SENSORS_ONLY:
-                currentMode = Settings.Secure.LOCATION_MODE_HIGH_ACCURACY;
-                break;
-            case Settings.Secure.LOCATION_MODE_BATTERY_SAVING:
-                currentMode = Settings.Secure.LOCATION_MODE_SENSORS_ONLY;
-                break;
-            case Settings.Secure.LOCATION_MODE_HIGH_ACCURACY:
-                currentMode = Settings.Secure.LOCATION_MODE_BATTERY_SAVING;
-                break;
-        }
-        return setLocationMode(currentMode);
+    public int locationMode() {
+        ContentResolver resolver = mContext.getContentResolver();
+        return Settings.Secure.getIntForUser(resolver, Settings.Secure.LOCATION_MODE,
+                Settings.Secure.LOCATION_MODE_OFF, ActivityManager.getCurrentUser());
     }
 
-    /**
-     * Returns the actual location mode which is running
-     */
-    public int getLocationMode() {
+    public boolean isLocationAllowPanelCollapse() {
         ContentResolver resolver = mContext.getContentResolver();
         // QuickSettings always runs as the owner, so specifically retrieve the settings
         // for the current foreground user.
         int mode = Settings.Secure.getIntForUser(resolver, Settings.Secure.LOCATION_MODE,
-                Settings.Secure.LOCATION_MODE_OFF, ActivityManager.getCurrentUser());
-        return mode;
+                    Settings.Secure.LOCATION_MODE_OFF, ActivityManager.getCurrentUser());
+        return (mode == Settings.Secure.LOCATION_MODE_BATTERY_SAVING)
+                 || (mode == Settings.Secure.LOCATION_MODE_HIGH_ACCURACY);
     }
 
     /**
@@ -253,14 +256,8 @@ public class LocationController extends BroadcastReceiver {
 
     private void locationSettingsChanged() {
         boolean isEnabled = isLocationEnabled();
-        int locationMode = getLocationMode();
-        if (isEnabled) {
-            Settings.Secure.putIntForUser(mContext.getContentResolver(),
-                    Settings.Secure.LOCATION_LAST_MODE, locationMode,
-                    ActivityManager.getCurrentUser());
-        }
         for (LocationSettingsChangeCallback cb : mSettingsChangeCallbacks) {
-            cb.onLocationSettingsChanged(isEnabled, locationMode);
+            cb.onLocationSettingsChanged(isEnabled);
         }
     }
 
