@@ -1359,4 +1359,8 @@
     <bool name="config_hasRemovableLid">false</bool>
 
     <bool name="config_offscreenGestureSupport">false</bool>
+
+   <!-- set to false if we dont need to consider data
+         service state to display signal strength bars -->
+    <bool name="config_combined_signal">true</bool>
 </resources>
