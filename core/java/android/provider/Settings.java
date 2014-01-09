@@ -3734,6 +3734,12 @@ public final class Settings {
         public static final String LOCKSCREEN_NOTIFICATIONS_PRIVACY_MODE = "lockscreen_notifications_privacy_mode";
 
         /**
+         * Enables dynamic with for shown notifications
+         * @hide
+         */
+        public static final String LOCKSCREEN_NOTIFICATIONS_DYNAMIC_WIDTH = "lockscreen_notifications_dynamic_width";
+
+        /**
          * Should call status sounds be player
          *
          * @hide
