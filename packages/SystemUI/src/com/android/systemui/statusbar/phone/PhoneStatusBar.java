@@ -129,6 +129,7 @@ import com.android.systemui.omni.StatusHeaderMachine;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
     static final String TAG = "PhoneStatusBar";
@@ -194,6 +195,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
     Display mDisplay;
     Point mCurrentDisplaySize = new Point();
     int mCurrUiThemeMode;
+    Locale mCurrLocale;
     private float mHeadsUpVerticalOffset;
     private int[] mPilePosition = new int[2];
 
@@ -3323,8 +3325,20 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
             ((TextView)mClearButton).setText(context.getText(R.string.status_bar_clear_all_button));
         }
 
-        // Update the QuickSettings container
-        if (mQS != null) mQS.updateResources();
+        // check for local changes and rebuild QS
+        // all other changes just update the layout
+        Locale locale = res.getConfiguration().locale;
+        if (locale != mCurrLocale) {
+            mCurrLocale = locale;
+            if (mQS != null) {
+                mQS.updateResources();
+            }
+        } else {
+            // Update the QuickSettings container
+            if (mSettingsContainer != null) {
+                mSettingsContainer.updateResources();
+            }
+        }
 
         loadDimens();
     }
