@@ -23,14 +23,11 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.graphics.Point;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 import com.android.systemui.R;
@@ -53,8 +50,6 @@ class QuickSettingsContainerView extends FrameLayout {
 
     private Context mContext;
     private Resources mResources;
-
-    private boolean mFirstStartUp = true;
 
     // Default layout transition
     private LayoutTransition mLayoutTransition;
@@ -163,10 +158,6 @@ class QuickSettingsContainerView extends FrameLayout {
         int y = getPaddingTop();
         int cursor = 0;
 
-        // onMeasure is done onLayout called last time isLandscape()
-        // so first bootup is done, set it to false
-        mFirstStartUp = false;
-
         for (int i = 0; i < N; ++i) {
             QuickSettingsTileView child = (QuickSettingsTileView) getChildAt(i);
             ViewGroup.LayoutParams lp = child.getLayoutParams();
@@ -206,7 +197,6 @@ class QuickSettingsContainerView extends FrameLayout {
                 }
             }
         }
-        updateSpan();
     }
 
     public void setOnEditModeChangedListener(EditModeChangedListener listener) {
@@ -221,27 +211,15 @@ class QuickSettingsContainerView extends FrameLayout {
         return mEditModeEnabled;
     }
 
-    public boolean isDynamicEnabled() {
-        return Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.QUICK_SETTINGS_TILES_ROW, 1) != 0;
-    }
-
     private boolean shouldUpdateColumns() {
-        return (getTilesSize() > 12) && !isLandscape() && isDynamicEnabled();
+        return (getTilesSize() > 12) && !isLandscape();
     }
 
     private boolean isLandscape() {
-        if (mFirstStartUp) {
-            WindowManager wm =
-                  ((WindowManager) mContext.getSystemService(mContext.WINDOW_SERVICE));
-            Display display = wm.getDefaultDisplay();
-            Point size = new Point();
-            display.getSize(size);
-            return size.x > size.y;
-        } else {
-            return Resources.getSystem().getConfiguration().orientation
+        final boolean isLandscape =
+            Resources.getSystem().getConfiguration().orientation
                     == Configuration.ORIENTATION_LANDSCAPE;
-        }
+        return isLandscape;
     }
 
     private int getTilesSize() {
@@ -263,11 +241,6 @@ class QuickSettingsContainerView extends FrameLayout {
             default:
                 return mResources.getDimensionPixelSize(R.dimen.qs_3_column_text_size);
         }
-    }
-
-    public void resetAllTiles() {
-        Settings.System.putString(mContext.getContentResolver(),
-                   Settings.System.QUICK_SETTINGS_TILES, QuickSettings.DEFAULT_TILES);
     }
 
     public void setEditModeEnabled(boolean enabled) {
