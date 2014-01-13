@@ -990,20 +990,20 @@ class QuickSettings {
                   }
                } else if (Tile.LOCATION.toString().equals(tile.toString())) { // Location
                  // Location
-                 final QuickSettingsFlipTile locationTile
-                       = new QuickSettingsFlipTile(mContext);
+                 final QuickSettingsBasicTile locationTile
+                       = new QuickSettingsBasicTile(mContext);
                  locationTile.setTileId(Tile.LOCATION);
-                 locationTile.setFrontImageResource(R.drawable.ic_qs_location_on);
-                 locationTile.setFrontText(mContext.getString(R.string.quick_settings_location_label));
-                 locationTile.setBackLabel(mContext.getString(R.string.quick_settings_volume_status));
-                 locationTile.setFrontOnLongClickListener(new View.OnLongClickListener() {
+                 locationTile.setImageResource(R.drawable.ic_qs_location_on);
+                 locationTile.setTextResource(R.string.quick_settings_location_label);
+                 locationTile.setOnLongClickListener(new View.OnLongClickListener() {
                        @Override
                        public boolean onLongClick(View v) {
                            startSettingsActivity(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                            return true;
                        }
                   });
-                  locationTile.setFrontOnClickListener(new View.OnClickListener() {
+
+                  locationTile.setOnClickListener(new View.OnClickListener() {
                        @Override
                        public void onClick(View v) {
                            boolean newLocationEnabledState = !mLocationController.isLocationEnabled();
@@ -1015,45 +1015,17 @@ class QuickSettings {
                                mContext.sendBroadcast(closeDialog);
                            }
                   }} );
-                  mModel.addLocationTile(locationTile.getFront(), new QuickSettingsModel.RefreshCallback() {
+                  mModel.addLocationTile(locationTile, new QuickSettingsModel.RefreshCallback() {
                       @Override
                       public void refreshView(QuickSettingsTileView unused, State state) {
-                          locationTile.setFrontImageResource(state.iconId);
+                          locationTile.setImageResource(state.iconId);
                           String locationState = mContext.getString(
                               (state.enabled) ? R.string.accessibility_desc_on
                                     : R.string.accessibility_desc_off);
                           locationTile.setContentDescription(mContext.getString(
                               R.string.accessibility_quick_settings_location,
                               locationState));
-                          locationTile.setFrontText(state.label);
-                      }
-                  });
-                  locationTile.setBackOnClickListener(new View.OnClickListener() {
-                       @Override
-                       public void onClick(View v) {
-                           int newLocationMode = mLocationController.locationMode();
-                           if (mLocationController.isLocationEnabled()) {
-                               if (mLocationController.setBackLocationEnabled(newLocationMode)) {
-                                   if (mLocationController.isLocationAllowPanelCollapse()) {
-                                       Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-                                       mContext.sendBroadcast(closeDialog);
-                                   }
-                               }
-                           }
-                  }} );
-                  locationTile.setBackOnLongClickListener(new View.OnLongClickListener() {
-                       @Override
-                       public boolean onLongClick(View v) {
-                           startSettingsActivity(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                           return true;
-                       }
-                  });
-                  mModel.addBackLocationTile(locationTile.getBack(), mLocationController,
-                                    new QuickSettingsModel.RefreshCallback() {
-                      @Override
-                      public void refreshView(QuickSettingsTileView unused, State state) {
-                          locationTile.setBackImageResource(state.iconId);
-                          locationTile.setBackFunction(state.label);
+                          locationTile.setText(state.label);
                       }
                   });
                   parent.addView(locationTile);
