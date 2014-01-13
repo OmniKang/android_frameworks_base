@@ -870,25 +870,17 @@ class QuickSettings {
                   if (addMissing) VolumeTile.setVisibility(View.GONE);
                } else if (Tile.SLEEP.toString().equals(tile.toString())) { // Sleep tile
                   // Sleep
-                  final QuickSettingsFlipTile SleepTile
-                       = new QuickSettingsFlipTile(mContext);
+                  final QuickSettingsBasicTile SleepTile
+                       = new QuickSettingsBasicTile(mContext);
                   SleepTile.setTileId(Tile.SLEEP);
-                  SleepTile.setFrontImageResource(R.drawable.ic_qs_sleep);
-                  SleepTile.setFrontText(mContext.getString(R.string.quick_settings_screen_sleep));
-                  SleepTile.setBackLabel(mContext.getString(R.string.quick_settings_volume_status));
-                  SleepTile.setFrontOnClickListener(new View.OnClickListener() {
+                  SleepTile.setImageResource(R.drawable.ic_qs_sleep);
+                  SleepTile.setTextResource(R.string.quick_settings_screen_sleep);
+                  SleepTile.setOnClickListener(new View.OnClickListener() {
                        @Override
                        public void onClick(View v) {
                            collapsePanels();
                            pm.goToSleep(SystemClock.uptimeMillis());
                       }
-                  });
-                  mModel.addSleepModeTile(SleepTile.getBack(), new QuickSettingsModel.RefreshCallback() {
-                        @Override
-                        public void refreshView(QuickSettingsTileView view, State state) {
-                            SleepTile.setBackImageResource(state.iconId);
-                            SleepTile.setBackFunction(state.label);
-                        }
                   });
                   parent.addView(SleepTile);
                   if (addMissing) SleepTile.setVisibility(View.GONE);
