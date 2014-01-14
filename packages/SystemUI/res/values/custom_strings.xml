@@ -46,7 +46,7 @@
     <!-- Screen record notification error title -->
     <string name="screenrecord_notif_error">Unable to record screen</string>
 
-    <string name="network_4G">4G</string>
+    <string name="network_4G">4G/LTE</string>
     <string name="network_3G_only" translatable="false">3G Only</string>
     <string name="network_3G_auto" translatable="false">2G/3G Auto</string>
     <string name="network_3G" translatable="false">2G/3G Pref</string>

@@ -408,6 +408,8 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
 
     private final boolean mHasMobileData;
 
+    private boolean mRibbon = false;
+
     private QuickSettingsTileView mUserTile;
     private RefreshCallback mUserCallback;
     private UserState mUserState = new UserState();
@@ -524,8 +526,9 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         }
     };
 
-    public QuickSettingsModel(Context context) {
+    public QuickSettingsModel(Context context, boolean ribbon) {
         mContext = context;
+        mRibbon = ribbon;
         mHandler = new Handler();
         mUserTracker = new CurrentUserTracker(mContext) {
             @Override
@@ -653,10 +656,14 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         mAlarmCallback.refreshView(view, mAlarmState);
     }
     void onAlarmChanged(Intent intent) {
+        if (mRibbon) return;
+
         mAlarmState.enabled = intent.getBooleanExtra("alarmSet", false);
         mAlarmCallback.refreshView(mAlarmTile, mAlarmState);
     }
     void onNextAlarmChanged() {
+        if (mRibbon) return;
+
         final String alarmText = Settings.System.getStringForUser(mContext.getContentResolver(),
                 Settings.System.NEXT_ALARM_FORMATTED,
                 UserHandle.USER_CURRENT);
@@ -933,6 +940,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
             mRSSIState.networkType = getNetworkType(r);
             mRSSICallback.refreshView(mRSSITile, mRSSIState);
         }
+        //onMobileNetworkChanged();
     }
 
     void refreshRssiTile() {
@@ -1162,6 +1170,8 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     }
     // SettingsObserver callback
     public void onBugreportChanged() {
+        if (mRibbon) return;
+
         final ContentResolver cr = mContext.getContentResolver();
         boolean enabled = false;
         try {
@@ -1200,6 +1210,8 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     }
 
     private void updateRemoteDisplays() {
+        if (mRibbon) return;
+
         MediaRouter.RouteInfo connectedRoute = mMediaRouter.getSelectedRoute(
                 MediaRouter.ROUTE_TYPE_REMOTE_DISPLAY);
         boolean enabled = connectedRoute != null
@@ -1279,6 +1291,8 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         return false;
     }
     void onImeWindowStatusChanged(boolean visible) {
+        if (mRibbon) return;
+
         InputMethodManager imm =
                 (InputMethodManager) mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
         List<InputMethodInfo> imis = imm.getInputMethodList();
@@ -1423,6 +1437,8 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         setSslCaCertWarningTileInfo(false, true);
     }
     public void setSslCaCertWarningTileInfo(boolean hasCert, boolean isManaged) {
+        if (mRibbon) return;
+
         Resources r = mContext.getResources();
         mSslCaCertWarningState.enabled = hasCert;
         if (isManaged) {

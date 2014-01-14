@@ -150,6 +150,7 @@ class QuickSettings {
     boolean mTilesSetUp = false;
     boolean mUseDefaultAvatar = false;
     boolean mEditModeEnabled = false;
+    boolean mRibbon = false;
 
     private Handler mHandler;
 
@@ -160,13 +161,14 @@ class QuickSettings {
 
     private PowerManager pm;
 
-    public QuickSettings(Context context, QuickSettingsContainerView container) {
+    public QuickSettings(Context context, QuickSettingsContainerView container, boolean ribbon) {
         mDevicePolicyManager
             = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
         pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         mContext = context;
         mContainerView = container;
-        mModel = new QuickSettingsModel(context);
+        mRibbon = ribbon;
+        mModel = new QuickSettingsModel(context, ribbon);
         mBluetoothState = new QuickSettingsModel.BluetoothState();
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
@@ -308,11 +310,13 @@ class QuickSettings {
     }
 
     private void setupQuickSettings() {
-        addTiles(mContainerView, false, false);
-        addTemporaryTiles(mContainerView);
+        addTiles(mContainerView, false, false, mRibbon);
+        if (!mRibbon) {
+            addTemporaryTiles(mContainerView);
+            queryForSslCaCerts();
+        }
 
         queryForUserInformation();
-        queryForSslCaCerts();
         mTilesSetUp = true;
     }
 
@@ -356,15 +360,28 @@ class QuickSettings {
         mModel.refreshBatteryTile();
     }
 
-    private void addTiles(ViewGroup parent, boolean addMissing, boolean reset) {
+    private void addTiles(ViewGroup parent, boolean addMissing, boolean reset, boolean ribbon) {
         // Load all the customizable tiles. If not yet modified by the user, load default ones.
         // After enabled tiles are loaded, proceed to load missing tiles and set them to View.GONE.
         // If all the tiles were deleted, they are still loaded, but their visibility is changed
         if (reset) {
             parent.removeAllViews();
         }
-        String tileContainer = Settings.System.getString(mContext.getContentResolver(),
+        String tileContainer = null;
+        boolean isQsLinked = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.QUICK_SETTINGS_LINKED_TILES, 0) == 1;
+        if (ribbon) {
+            if (isQsLinked) {
+                tileContainer = Settings.System.getString(mContext.getContentResolver(),
+                        Settings.System.QUICK_SETTINGS_TILES);
+            } else {
+                tileContainer = Settings.System.getString(mContext.getContentResolver(),
+                        Settings.System.QUICK_SETTINGS_RIBBON_TILES);
+            }
+        } else {
+            tileContainer = Settings.System.getString(mContext.getContentResolver(),
                 Settings.System.QUICK_SETTINGS_TILES);
+        }
         if (tileContainer == null) tileContainer = DEFAULT_TILES;
         Tile[] allTiles = Tile.values();
         String[] storedTiles = tileContainer.split(DELIMITER);
@@ -1118,7 +1135,7 @@ class QuickSettings {
                }
             }
         }
-        if(!addMissing) addTiles(parent, true, false);
+        if(!addMissing) addTiles(parent, true, false, mRibbon);
     }
 
     private void addTemporaryTiles(final ViewGroup parent) {
@@ -1247,9 +1264,29 @@ class QuickSettings {
         return array;
     }
 
+    public void shutdown() {
+        if (mReceiver != null) {
+            mContext.unregisterReceiver(mReceiver);
+        }
+        if (mProfileReceiver != null) {
+            mContext.unregisterReceiver(mProfileReceiver);
+        }
+        if (mModel != null) {
+            mModel = null;
+        }
+        if (mContainerView != null) {
+            mContainerView.removeAllViews();
+        }
+        if (mRibbon) {
+            mRibbon = false;
+        }
+    }
+
     public void updateTiles() {
-        addTiles(mContainerView, false, true);
-        addTemporaryTiles(mContainerView);
+        addTiles(mContainerView, false, true, mRibbon);
+        if (!mRibbon) {
+            addTemporaryTiles(mContainerView);
+        }
         updateResources();
     }
 
@@ -1261,6 +1298,9 @@ class QuickSettings {
 
         QuickSettingsContainerView container = ((QuickSettingsContainerView)mContainerView);
 
+        if (mRibbon) {
+            container.updateRibbonMode();
+        }
         container.updateSpan();
         container.updateResources();
         mContainerView.requestLayout();
@@ -1320,7 +1360,9 @@ class QuickSettings {
         }
         if (mTilesSetUp) {
             queryForUserInformation();
-            queryForSslCaCerts();
+            if (!mRibbon) {
+                queryForSslCaCerts();
+            }
         }
     }
 
@@ -1345,7 +1387,9 @@ class QuickSettings {
                     queryForUserInformation();
                 }
             } else if (KeyChain.ACTION_STORAGE_CHANGED.equals(action)) {
-                queryForSslCaCerts();
+                if (!mRibbon) {
+                    queryForSslCaCerts();
+                }
             }
         }
     };
