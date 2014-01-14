@@ -430,7 +430,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
             mCustomHeader = Settings.System.getInt(
                     resolver, Settings.System.STATUS_BAR_CUSTOM_HEADER, 0) == 1;
             mHasQuickAccessSettings = Settings.System.getInt(
-                    resolver, Settings.System.QUICK_SETTINGS_TILES_ROW, 1) == 5;
+                    resolver, Settings.System.QS_QUICK_ACCESS, 1) == 1;
 
             updateBatteryIcons();
             updateCustomHeaderStatus();
@@ -459,7 +459,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
 
         void observe() {
             mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.QUICK_SETTINGS_TILES_ROW), false, this);
+                    Settings.System.QS_QUICK_ACCESS), false, this);
             update();
         }
 
@@ -470,7 +470,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
 
         public void update() {
             mHasQuickAccessSettings = Settings.System.getInt(
-                mContext.getContentResolver(), Settings.System.QUICK_SETTINGS_TILES_ROW, 1) == 5;
+                mContext.getContentResolver(), Settings.System.QS_QUICK_ACCESS, 1) == 1;
 
             if (mHasQuickAccessSettings) {
                 inflateRibbon();
@@ -960,7 +960,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
             }
 
             mHasQuickAccessSettings = Settings.System.getInt(mContext.getContentResolver(),
-                          Settings.System.QUICK_SETTINGS_TILES_ROW, 1) == 5;
+                          Settings.System.QS_QUICK_ACCESS, 1) == 1;
             if (mHasQuickAccessSettings) {
                 cleanupRibbon();
                 mRibbonView = null;
