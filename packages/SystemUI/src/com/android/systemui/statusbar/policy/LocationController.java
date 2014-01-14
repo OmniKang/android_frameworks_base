@@ -68,8 +68,6 @@ public class LocationController extends BroadcastReceiver {
          *
          * @param locationEnabled A value of true indicates that at least one type of location
          *                        is enabled in settings.
-         * @param locationMode value indicates the type of location mode
-         *                        which is enabled in settings.
          */
         public void onLocationSettingsChanged(boolean locationEnabled);
     }
