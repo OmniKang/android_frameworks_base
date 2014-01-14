@@ -16,6 +16,7 @@ public class QuickSettingsHorizontalScrollView extends HorizontalScrollView {
         FLING
     }
 
+    private float xDistance, yDistance, lastX, lastY;
     private EventStates systemState = EventStates.SCROLLING;
 
     public QuickSettingsHorizontalScrollView(Context context) {
@@ -28,6 +29,7 @@ public class QuickSettingsHorizontalScrollView extends HorizontalScrollView {
 
     public QuickSettingsHorizontalScrollView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        setFadingEdgeLength(0);
     }
 
     private Runnable mSnapRunnable = new Runnable(){
@@ -38,70 +40,62 @@ public class QuickSettingsHorizontalScrollView extends HorizontalScrollView {
         }
     };
 
-    private float getChildAtPosition(MotionEvent ev) {
+    private View getChildAtPosition(MotionEvent ev) {
         final float x = ev.getX() + getScrollX();
         final float y = ev.getY() + getScrollY();
         ViewGroup parent = (ViewGroup) getChildAt(0);
         for (int i = 0; i < parent.getChildCount(); i++) {
-            View item = parent.getChildAt(i);
-            if (x >= item.getLeft() && x < item.getRight()
-                && y >= item.getTop() && y < item.getBottom()) {
-                return (float) item.getWidth();
-            }
+             View item = parent.getChildAt(i);
+             if (x >= item.getLeft() && x < item.getRight()
+                 && y >= item.getTop() && y < item.getBottom()) {
+                 return item;
+             }
         }
-        return 0;
+        return null;
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        switch(ev.getAction()) {
-               case MotionEvent.ACTION_DOWN:
-                    super.onTouchEvent(ev);
-                    break;
-               case MotionEvent.ACTION_MOVE:
-                    return false;
-               case MotionEvent.ACTION_CANCEL:
-                    super.onTouchEvent(ev);
-                    break;
-               case MotionEvent.ACTION_UP:
-                    return false;
+        View tile = getChildAtPosition(ev);
+        switch (ev.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                     xDistance = yDistance = 0f;
+                     lastX = ev.getX();
+                     lastY = ev.getY();
+                     break;
+                case MotionEvent.ACTION_MOVE:
+                     final float curX = ev.getX();
+                     final float curY = ev.getY();
+                     xDistance += Math.abs(curX - lastX);
+                     yDistance += Math.abs(curY - lastY);
+                     lastX = curX;
+                     lastY = curY;
+                     if (yDistance > xDistance) {
+                        return false;
+                     }
+                     if (tile != null && (xDistance > yDistance)) {
+                         MotionEvent evt = MotionEvent.obtain(0, 0,
+                             MotionEvent.ACTION_CANCEL, lastX, lastY, 0);
+                         tile.onTouchEvent(evt);
+                     }
+                     break;
         }
-        return false;
+        return super.onInterceptTouchEvent(ev);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        boolean onTouch = super.onTouchEvent(ev);
-        boolean onSwipe = false;
-        float startlocation = 0;
-        float inViewTouch = getChildAtPosition(ev);
-        switch(ev.getAction()) {
-               case MotionEvent.ACTION_DOWN:
-                    onSwipe = false;
-                    if (inViewTouch != 0) {
-                        startlocation = ev.getX();
-                    }
-                    systemState = EventStates.SCROLLING;
-                    removeCallbacks(mSnapRunnable);
-                    break;
-               case MotionEvent.ACTION_MOVE:
-                    if (startlocation != 0 && (Math.abs(startlocation - ev.getX()) < (inViewTouch * 0.2f))) {
-                        onSwipe = true;
-                    } else {
-                        onSwipe = false;
-                    }
-                    systemState = EventStates.FLING;
-                    break;
-               case MotionEvent.ACTION_CANCEL:
-               case MotionEvent.ACTION_UP:
-                    onSwipe = false;
-                    systemState = EventStates.FLING;
-                    break;
+        switch (ev.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                     systemState = EventStates.FLING;
+                     break;
+                case MotionEvent.ACTION_CANCEL:
+                case MotionEvent.ACTION_UP:
+                     systemState = EventStates.SCROLLING;
+                     removeCallbacks(mSnapRunnable);
+                     break;
         }
-        if (onTouch && onSwipe) {
-            return false;
-        }
-        return onTouch;
+        return super.onTouchEvent(ev);
     }
 
     private void snapItems() {
@@ -122,11 +116,6 @@ public class QuickSettingsHorizontalScrollView extends HorizontalScrollView {
                 break;
             }
         }
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        super.onLayout(changed, l, t, r, b);
     }
 
     @Override
