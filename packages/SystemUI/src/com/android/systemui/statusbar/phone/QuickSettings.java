@@ -62,6 +62,7 @@ import android.security.KeyChain;
 import android.provider.Settings.SettingNotFoundException;
 import android.util.Log;
 import android.util.Pair;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -152,7 +153,7 @@ class QuickSettings {
 
     private Handler mHandler;
 
-    private QuickSettingsTileView mBatteryTile;
+    private QuickSettingsBasicBatteryTile mBatteryTile;
     private BatteryMeterView mBattery;
     private BatteryCircleMeterView mCircleBattery;
     private boolean mBatteryHasPercent;
@@ -385,7 +386,7 @@ class QuickSettings {
                             final UserManager um = UserManager.get(mContext);
                             if (um.getUsers(true).size() > 1) {
                                 // Since keyguard and systemui were merged into the same process to save
-                                // memory, they share the same Looper and graphics context.  As a result,
+                                // memory, they share the same Looper and graphics context. As a result,
                                 // there's no way to allow concurrent animation while keyguard inflates.
                                 // The workaround is to add a slight delay to allow the animation to finish.
                                 mHandler.postDelayed(new Runnable() {
@@ -540,21 +541,19 @@ class QuickSettings {
                   final ConnectivityManager cm =
                          (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-                  if (LONG_PRESS_TOGGLES) {
-                      wifiTileBack.setOnLongClickListener(new View.OnLongClickListener() {
-                          @Override
-                          public boolean onLongClick(View v) {
-                              if (cm.getTetherableWifiRegexs().length != 0) {
-                                  Intent intent = new Intent();
-                                  intent.setComponent(new ComponentName(
-                                          "com.android.settings",
-                                          "com.android.settings.Settings$TetherSettingsActivity"));
-                                  startSettingsActivity(intent);
-                              }
-                              return true;
+                  wifiTile.setBackOnLongClickListener(new View.OnLongClickListener() {
+                      @Override
+                      public boolean onLongClick(View v) {
+                          if (cm.getTetherableWifiRegexs().length != 0) {
+                              Intent intent = new Intent();
+                              intent.setComponent(new ComponentName(
+                                      "com.android.settings",
+                                      "com.android.settings.Settings$TetherSettingsActivity"));
+                              startSettingsActivity(intent);
                           }
-                      });
-                  }
+                          return true;
+                      }
+                  });
 
                   wifiTile.setBackOnClickListener(new View.OnClickListener() {
                       @Override
@@ -564,18 +563,18 @@ class QuickSettings {
                               case WifiManager.WIFI_AP_STATE_ENABLING:
                               case WifiManager.WIFI_AP_STATE_ENABLED:
                                   setSoftapEnabled(false);
-                                  wifiTileBack.setFunction(
+                                  wifiTile.setBackFunction(
                                           mContext.getString(R.string.wifi_ap_disabled));
                                   break;
                               case WifiManager.WIFI_AP_STATE_DISABLING:
                               case WifiManager.WIFI_AP_STATE_DISABLED:
                               default:
                                   setSoftapEnabled(true);
-                                  wifiTileBack.setFunction(
+                                  wifiTile.setBackFunction(
                                           mContext.getString(R.string.wifi_ap_enabled));
                                   break;
                           }
-                      }} );
+                  }} );
 
                   mModel.addWifiBackTile(wifiTile.getBack(), new QuickSettingsModel.RefreshCallback() {
                         @Override
@@ -594,13 +593,13 @@ class QuickSettings {
                             switch (ap_state) {
                                 case WifiManager.WIFI_AP_STATE_ENABLING:
                                 case WifiManager.WIFI_AP_STATE_ENABLED:
-                                    wifiTileBack.setFunction(
+                                    wifiTile.setBackFunction(
                                             mContext.getString(R.string.wifi_ap_enabled));
                                     break;
                                 case WifiManager.WIFI_AP_STATE_DISABLING:
                                 case WifiManager.WIFI_AP_STATE_DISABLED:
                                 default:
-                                    wifiTileBack.setFunction(
+                                    wifiTile.setBackFunction(
                                             mContext.getString(R.string.wifi_ap_disabled));
                                     break;
                             }
@@ -641,11 +640,11 @@ class QuickSettings {
                                 rssiTile.setImageResource(rssiState.signalIconId);
 
                                 if (rssiState.dataTypeIconId > 0) {
-                                    iov.setImageResource(rssiState.dataTypeIconId);
+                                    rssiTile.setImageOverlayResource(rssiState.dataTypeIconId);
                                 } else if (rssiState.dataTypeIconId == 0 && cms.getMobileDataEnabled()) {
-                                    iov.setImageDrawable(null);
+                                    rssiTile.setImageOverlayDrawable(null);
                                 } else {
-                                    iov.setImageResource(R.drawable.ic_qs_signal_data_off);
+                                    rssiTile.setImageOverlayResource(R.drawable.ic_qs_signal_data_off);
                                 }
                                 setActivity(view, rssiState);
 
@@ -702,9 +701,7 @@ class QuickSettings {
                   }
                } else if (Tile.BATTERY.toString().equals(tile.toString())) { // battery tile
                   // Battery
-                  mBatteryTile = (QuickSettingsTileView)
-                         inflater.inflate(R.layout.quick_settings_tile, parent, false);
-                  mBatteryTile.setContent(R.layout.quick_settings_tile_battery, inflater);
+                  mBatteryTile = new QuickSettingsBasicBatteryTile(mContext);
                   mBattery = (BatteryMeterView) mBatteryTile.findViewById(R.id.image);
                   mBattery.setVisibility(View.GONE);
                   mCircleBattery = (BatteryCircleMeterView)
