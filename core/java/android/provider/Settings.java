@@ -3390,6 +3390,7 @@ public final class Settings {
         public static final String LOCKSCREEN_QUICK_UNLOCK_CONTROL = "lockscreen_quick_unlock_control";
 
         /**
+<<<<<<< HEAD
          * whether which Ram Usage Bar mode is used on recent switcher
          * 0 = none, 1 = only app use, 2 = app and cache use, 3 = app, cache and system use
          * @hide
@@ -3405,6 +3406,9 @@ public final class Settings {
 
         /**
          * Ram Usage Bar cached mem color
+=======
+         * Volume key controls ringtone or media sound stream
+>>>>>>> 6cbbcfa... [1/2] Base: QS Ribbon style
          *
          * @hide
          */
@@ -3522,10 +3526,28 @@ public final class Settings {
         public static final String QUICK_SETTINGS_TILES = "quick_settings_tiles";
 
         /**
+         * Quick settings ribbon tiles to show on status bar
+         * @hide
+         */
+        public static final String QUICK_SETTINGS_RIBBON_TILES = "quick_settings_ribbon_tiles";
+
+        /**
+         * Quick settings tiles linked
+         * @hide
+         */
+        public static final String QUICK_SETTINGS_LINKED_TILES = "quick_settings_linked_tiles";
+
+        /**
          * Quick settings tiles dynamic row
          * @hide
          */
         public static final String QUICK_SETTINGS_TILES_ROW = "quick_settings_tiles_row";
+
+        /**
+         * Quick settings tiles to show on status bar
+         * @hide
+         */
+        public static final String QUICK_SETTINGS_RIBBON_ENABLED = "quick_settings_ribbon_enabled";
 
         /**
          * Volume key controls ringtone or media sound stream
