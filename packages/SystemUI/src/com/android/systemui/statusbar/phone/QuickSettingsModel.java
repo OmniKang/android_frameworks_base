@@ -79,6 +79,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         int iconId;
         String label;
         boolean enabled = false;
+        int mode;
     }
     static class BatteryState extends State {
         int batteryLevel;
@@ -1099,16 +1100,17 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
 
     void refreshLocationTile() {
         if (mLocationTile != null) {
-            onLocationSettingsChanged(mLocationState.enabled);
+            onLocationSettingsChanged(mLocationState.enabled, mLocationState.mode);
         }
     }
 
     @Override
-    public void onLocationSettingsChanged(boolean locationEnabled) {
+    public void onLocationSettingsChanged(boolean locationEnabled, int locationMode) {
         int textResId = locationEnabled ? R.string.quick_settings_location_label
                 : R.string.quick_settings_location_off_label;
         String label = mContext.getText(textResId).toString();
         mLocationState.enabled = locationEnabled;
+        mLocationState.mode = locationMode;
         mLocationState.label = label;
         mLocationState.iconId = getLocationDrawableMode(mLocationController.locationMode());
         mLocationCallback.refreshView(mLocationTile, mLocationState);
