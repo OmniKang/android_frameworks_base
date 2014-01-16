@@ -131,6 +131,9 @@ class QuickSettingsTileView extends FrameLayout {
 
     void switchToRibbonMode() {
         mRibbonMode = true;
+        if (mTouchListener != null) {
+            mTouchListener.switchToRibbonMode();
+        }
     }
 
     int getTextSizes() {

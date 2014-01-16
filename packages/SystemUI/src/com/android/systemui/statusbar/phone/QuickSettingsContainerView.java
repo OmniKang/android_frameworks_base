@@ -1,4 +1,4 @@
-/*
+	/*
  * Copyright (C) 2012 The Android Open Source Project
  * This code has been modified. Portions copyright (C) 2013, OmniRom Project.
  * This code has been modified. Portions copyright (C) 2013, ParanoidAndroid Project.
@@ -144,7 +144,7 @@ public class QuickSettingsContainerView extends FrameLayout {
         if (mSingleRow) {
             cellWidth = MeasureSpec.getSize(heightMeasureSpec);
             cellHeight = (int) cellWidth;
-            cellGap = mCellGap * 2;
+            cellGap /= 2;
         } else {
             cellHeight = (int) mResources.getDimension(R.dimen.quick_settings_cell_height);
         }
@@ -197,7 +197,7 @@ public class QuickSettingsContainerView extends FrameLayout {
         float cellGap = mCellGap;
 
         if (mSingleRow) {
-            cellGap = mCellGap * 2;
+            cellGap /= 2;
         }
 
         for (int i = 0; i < N; ++i) {

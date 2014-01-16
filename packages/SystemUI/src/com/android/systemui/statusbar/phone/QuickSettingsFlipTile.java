@@ -120,6 +120,7 @@ class QuickSettingsFlipTile extends QuickSettingsTileView {
     void switchToRibbonMode() {
         mBack.switchToRibbonMode();
         mFront.switchToRibbonMode();
+        mFlip3d.switchToRibbonMode();
     }
 
     public void setFrontOnLongClickListener(View.OnLongClickListener listener) {
