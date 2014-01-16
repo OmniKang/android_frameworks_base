@@ -1,23 +1,12 @@
 package com.android.systemui.statusbar.phone;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
 import android.widget.HorizontalScrollView;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.android.systemui.R;
 public class QuickSettingsHorizontalScrollView extends HorizontalScrollView {
@@ -41,7 +30,7 @@ public class QuickSettingsHorizontalScrollView extends HorizontalScrollView {
         super(context, attrs, defStyle);
     }
 
-    Runnable mSnapRunnable = new Runnable(){
+    private Runnable mSnapRunnable = new Runnable(){
         @Override
         public void run() {
             snapItems();
@@ -49,16 +38,70 @@ public class QuickSettingsHorizontalScrollView extends HorizontalScrollView {
         }
     };
 
+    private float getChildAtPosition(MotionEvent ev) {
+        final float x = ev.getX() + getScrollX();
+        final float y = ev.getY() + getScrollY();
+        ViewGroup parent = (ViewGroup) getChildAt(0);
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View item = parent.getChildAt(i);
+            if (x >= item.getLeft() && x < item.getRight()
+                && y >= item.getTop() && y < item.getBottom()) {
+                return (float) item.getWidth();
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        switch(ev.getAction()) {
+               case MotionEvent.ACTION_DOWN:
+                    super.onTouchEvent(ev);
+                    break;
+               case MotionEvent.ACTION_MOVE:
+                    return false;
+               case MotionEvent.ACTION_CANCEL:
+                    super.onTouchEvent(ev);
+                    break;
+               case MotionEvent.ACTION_UP:
+                    return false;
+        }
+        return false;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        int action = ev.getAction();
-        if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
-            systemState = EventStates.FLING;
-        } else if (action == MotionEvent.ACTION_DOWN) {
-            systemState = EventStates.SCROLLING;
-            removeCallbacks(mSnapRunnable);
+        boolean onTouch = super.onTouchEvent(ev);
+        boolean onSwipe = false;
+        float startlocation = 0;
+        float inViewTouch = getChildAtPosition(ev);
+        switch(ev.getAction()) {
+               case MotionEvent.ACTION_DOWN:
+                    onSwipe = false;
+                    if (inViewTouch != 0) {
+                        startlocation = ev.getX();
+                    }
+                    systemState = EventStates.SCROLLING;
+                    removeCallbacks(mSnapRunnable);
+                    break;
+               case MotionEvent.ACTION_MOVE:
+                    if (startlocation != 0 && (Math.abs(startlocation - ev.getX()) < (inViewTouch * 0.2f))) {
+                        onSwipe = true;
+                    } else {
+                        onSwipe = false;
+                    }
+                    systemState = EventStates.FLING;
+                    break;
+               case MotionEvent.ACTION_CANCEL:
+               case MotionEvent.ACTION_UP:
+                    onSwipe = false;
+                    systemState = EventStates.FLING;
+                    break;
         }
-        return super.onTouchEvent(ev);
+        if (onTouch && onSwipe) {
+            return false;
+        }
+        return onTouch;
     }
 
     private void snapItems() {

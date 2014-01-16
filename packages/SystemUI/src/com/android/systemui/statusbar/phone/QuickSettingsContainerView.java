@@ -144,7 +144,7 @@ public class QuickSettingsContainerView extends FrameLayout {
         if (mSingleRow) {
             cellWidth = MeasureSpec.getSize(heightMeasureSpec);
             cellHeight = (int) cellWidth;
-            cellGap /= 2;
+            cellGap = mCellGap * 2;
         } else {
             cellHeight = (int) mResources.getDimension(R.dimen.quick_settings_cell_height);
         }
@@ -197,7 +197,7 @@ public class QuickSettingsContainerView extends FrameLayout {
         float cellGap = mCellGap;
 
         if (mSingleRow) {
-            cellGap /= 2;
+            cellGap = mCellGap * 2;
         }
 
         for (int i = 0; i < N; ++i) {

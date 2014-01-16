@@ -93,9 +93,13 @@ class QuickSettingsBasicBackTile extends QuickSettingsTileView {
     }
 
     void switchToRibbonMode() {
-        TextView tv = (TextView) findViewById(R.id.function);
+        TextView tv = (TextView) findViewById(R.id.label);
         if (tv != null) {
             tv.setVisibility(View.GONE);
+        }
+        TextView itv = (TextView) findViewById(R.id.function);
+        if (itv != null) {
+            itv.setVisibility(View.GONE);
         }
         View image = findViewById(R.id.images);
         if (image != null) {
