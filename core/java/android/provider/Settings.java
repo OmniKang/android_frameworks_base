@@ -3502,12 +3502,6 @@ public final class Settings {
         public static final String QUICK_SETTINGS_TILES_ROW = "quick_settings_tiles_row";
 
         /**
-         * Enable quick settings ribbons in notification drawer
-         * @hide
-         */
-        public static final String QS_QUICK_ACCESS = "qs_quick_access";
-
-        /**
          * Volume key controls ringtone or media sound stream
          *
          * @hide
