@@ -3466,11 +3466,12 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
         if (uiThemeMode != mCurrUiThemeMode) {
             mCurrUiThemeMode = uiThemeMode;
             recreateStatusBar(false);
-            return;
-        }
-
-        if (mClearButton instanceof TextView) {
-            ((TextView)mClearButton).setText(context.getText(R.string.status_bar_clear_all_button));
+        } else {
+            if (mClearButton instanceof TextView) {
+                ((TextView)mClearButton).setText(
+                        context.getText(R.string.status_bar_clear_all_button));
+            }
+            loadDimens();
         }
 
         // Update the QuickSettings container

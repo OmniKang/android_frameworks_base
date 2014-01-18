@@ -706,7 +706,7 @@ final class UiModeManagerService extends IUiModeManager.Stub
                     updateComputedNightModeLocked();
                     updateLocked(0, 0);
                 }
-                if (mUiThemeAutoMode == 1) {
+                if (mUiThemeAutoMode == 2) {
                     updateTwilightThemeAutoMode();
                     sendConfigurationLocked();
                 }
