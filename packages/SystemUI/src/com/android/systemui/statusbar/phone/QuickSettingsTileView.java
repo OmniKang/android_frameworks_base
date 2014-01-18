@@ -31,8 +31,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
-import android.view.ViewGroup;
-import android.view.ViewGroup.MarginLayoutParams;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
 
@@ -67,7 +65,6 @@ class QuickSettingsTileView extends FrameLayout {
     private boolean mTemporary;
     private boolean mEditMode;
     private boolean mVisible;
-    private boolean mRibbonMode = false;
 
     public QuickSettingsTileView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -123,17 +120,6 @@ class QuickSettingsTileView extends FrameLayout {
 
     void setTextSizes(int size) {
         mTileTextSize = size;
-    }
-
-    boolean isRibbonMode() {
-        return mRibbonMode;
-    }
-
-    void switchToRibbonMode() {
-        mRibbonMode = true;
-        if (mTouchListener != null) {
-            mTouchListener.switchToRibbonMode();
-        }
     }
 
     int getTextSizes() {
