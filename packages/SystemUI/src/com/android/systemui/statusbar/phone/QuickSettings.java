@@ -150,7 +150,6 @@ class QuickSettings {
     boolean mTilesSetUp = false;
     boolean mUseDefaultAvatar = false;
     boolean mEditModeEnabled = false;
-    boolean mRibbon = false;
 
     private Handler mHandler;
 
@@ -161,14 +160,13 @@ class QuickSettings {
 
     private PowerManager pm;
 
-    public QuickSettings(Context context, QuickSettingsContainerView container, boolean ribbon) {
+    public QuickSettings(Context context, QuickSettingsContainerView container) {
         mDevicePolicyManager
             = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
         pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         mContext = context;
         mContainerView = container;
-        mRibbon = ribbon;
-        mModel = new QuickSettingsModel(context, ribbon);
+        mModel = new QuickSettingsModel(context);
         mBluetoothState = new QuickSettingsModel.BluetoothState();
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
@@ -310,13 +308,11 @@ class QuickSettings {
     }
 
     private void setupQuickSettings() {
-        addTiles(mContainerView, false, false, mRibbon);
-        if (!mRibbon) {
-            addTemporaryTiles(mContainerView);
-            queryForSslCaCerts();
-        }
+        addTiles(mContainerView, false, false);
+        addTemporaryTiles(mContainerView);
 
         queryForUserInformation();
+        queryForSslCaCerts();
         mTilesSetUp = true;
     }
 
@@ -360,28 +356,15 @@ class QuickSettings {
         mModel.refreshBatteryTile();
     }
 
-    private void addTiles(ViewGroup parent, boolean addMissing, boolean reset, boolean ribbon) {
+    private void addTiles(ViewGroup parent, boolean addMissing, boolean reset) {
         // Load all the customizable tiles. If not yet modified by the user, load default ones.
         // After enabled tiles are loaded, proceed to load missing tiles and set them to View.GONE.
         // If all the tiles were deleted, they are still loaded, but their visibility is changed
         if (reset) {
             parent.removeAllViews();
         }
-        String tileContainer = null;
-        boolean isQsLinked = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.QUICK_SETTINGS_LINKED_TILES, 0) == 1;
-        if (ribbon) {
-            if (isQsLinked) {
-                tileContainer = Settings.System.getString(mContext.getContentResolver(),
-                        Settings.System.QUICK_SETTINGS_TILES);
-            } else {
-                tileContainer = Settings.System.getString(mContext.getContentResolver(),
-                        Settings.System.QUICK_SETTINGS_RIBBON_TILES);
-            }
-        } else {
-            tileContainer = Settings.System.getString(mContext.getContentResolver(),
+        String tileContainer = Settings.System.getString(mContext.getContentResolver(),
                 Settings.System.QUICK_SETTINGS_TILES);
-        }
         if (tileContainer == null) tileContainer = DEFAULT_TILES;
         Tile[] allTiles = Tile.values();
         String[] storedTiles = tileContainer.split(DELIMITER);
@@ -395,7 +378,6 @@ class QuickSettings {
                if (Tile.USER.toString().equals(tile.toString())) { // User
                    final QuickSettingsBasicUserTile userTile
                             = new QuickSettingsBasicUserTile(mContext);
-
                    userTile.setTileId(Tile.USER);
                    userTile.setOnClickListener(new View.OnClickListener() {
                        @Override
@@ -447,7 +429,6 @@ class QuickSettings {
                   // Brightness
                   final QuickSettingsBasicTile brightnessTile
                               = new QuickSettingsBasicTile(mContext);
-
                   brightnessTile.setTileId(Tile.BRIGHTNESS);
                   brightnessTile.setImageResource(R.drawable.ic_qs_brightness_auto_off);
                   brightnessTile.setOnClickListener(new View.OnClickListener() {
@@ -489,7 +470,6 @@ class QuickSettings {
                } else if (Tile.SETTINGS.toString().equals(tile.toString())) { // Settings tile
                   // Settings tile
                   final QuickSettingsBasicTile settingsTile = new QuickSettingsBasicTile(mContext);
-
                   settingsTile.setTileId(Tile.SETTINGS);
                   settingsTile.setImageResource(R.drawable.ic_qs_settings);
                   settingsTile.setOnClickListener(new View.OnClickListener() {
@@ -602,12 +582,11 @@ class QuickSettings {
                             WifiState wifiState = (WifiState) state;
                             wifiTile.setBackImageResource(wifiState.iconId);
                             wifiTile.setBackLabel(wifiState.label);
-                            if (wifiState.connected) {
+                            if (cm.getTetherableWifiRegexs().length != 0) {
                                 wifiTile.setBackFunction(
                                 mContext.getString(R.string.quick_settings_wifi_tethering_label));
                             } else {
-                                wifiTile.setBackFunction(
-                                mContext.getString(R.string.quick_settings_wifi_tethering_off_label));
+                                wifiTile.setBackFunction("");
                             }
 
                             int ap_state = mWifiManager.getWifiApState();
@@ -632,7 +611,6 @@ class QuickSettings {
                   if (mModel.deviceHasMobileData()) {
                       // RSSI
                       final QuickSettingsBasicNetworkTile rssiTile = new QuickSettingsBasicNetworkTile(mContext);
-
                       rssiTile.setTileId(Tile.RSSI);
                       final ConnectivityManager cms =
                          (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -687,7 +665,6 @@ class QuickSettings {
                       || DEBUG_GONE_TILES) {
                       final QuickSettingsBasicTile rotationLockTile
                             = new QuickSettingsBasicTile(mContext);
-
                       rotationLockTile.setTileId(Tile.ROTATION);
                       rotationLockTile.setOnClickListener(new View.OnClickListener() {
                            @Override
@@ -770,7 +747,6 @@ class QuickSettings {
                   // Immersive mode
                   final QuickSettingsBasicTile immersiveTile
                        = new QuickSettingsBasicTile(mContext);
-
                   immersiveTile.setTileId(Tile.IMMERSIVE);
                   immersiveTile.setImageResource(R.drawable.ic_qs_immersive_off);
                   immersiveTile.setTextResource(R.string.quick_settings_immersive_mode_off_label);
@@ -792,7 +768,6 @@ class QuickSettings {
                   // Airplane Mode
                   final QuickSettingsBasicTile airplaneTile
                         = new QuickSettingsBasicTile(mContext);
-
                   airplaneTile.setTileId(Tile.AIRPLANE);
                   mModel.addAirplaneModeTile(airplaneTile, new QuickSettingsModel.RefreshCallback() {
                         @Override
@@ -813,7 +788,6 @@ class QuickSettings {
                   // Usb Mode
                   final QuickSettingsBasicTile usbModeTile
                         = new QuickSettingsBasicTile(mContext);
-
                   usbModeTile.setTileId(Tile.USBMODE);
                   final ConnectivityManager cm =
                          (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -843,7 +817,6 @@ class QuickSettings {
                   // Torch
                   final QuickSettingsBasicTile torchTile
                         = new QuickSettingsBasicTile(mContext);
-
                   torchTile.setTileId(Tile.TORCH);
                   torchTile.setOnLongClickListener(new View.OnLongClickListener() {
                         @Override
@@ -865,7 +838,6 @@ class QuickSettings {
                   // sync
                   final QuickSettingsBasicTile SyncTile
                         = new QuickSettingsBasicTile(mContext);
-
                   SyncTile.setTileId(Tile.SYNC);
                   SyncTile.setOnLongClickListener(new View.OnLongClickListener() {
                         @Override
@@ -890,7 +862,6 @@ class QuickSettings {
                   // Quite hours mode
                   final QuickSettingsBasicTile quiteHourTile
                        = new QuickSettingsBasicTile(mContext);
-
                   quiteHourTile.setTileId(Tile.QUITEHOUR);
                   quiteHourTile.setImageResource(R.drawable.ic_qs_quiet_hours_off);
                   quiteHourTile.setTextResource(R.string.quick_settings_quiethours_off_label);
@@ -964,7 +935,6 @@ class QuickSettings {
                   // Sleep
                   final QuickSettingsFlipTile SleepTile
                        = new QuickSettingsFlipTile(mContext);
-
                   SleepTile.setTileId(Tile.SLEEP);
                   SleepTile.setFrontImageResource(R.drawable.ic_qs_sleep);
                   SleepTile.setFrontText(mContext.getString(R.string.quick_settings_screen_sleep));
@@ -1085,9 +1055,8 @@ class QuickSettings {
                  // Location
                  final QuickSettingsFlipTile locationTile
                        = new QuickSettingsFlipTile(mContext);
-
                  locationTile.setTileId(Tile.LOCATION);
-                 locationTile.setFrontImageResource(R.drawable.ic_qs_location_default_on);
+                 locationTile.setFrontImageResource(R.drawable.ic_qs_location_on);
                  locationTile.setFrontText(mContext.getString(R.string.quick_settings_location_label));
                  locationTile.setBackLabel(mContext.getString(R.string.quick_settings_volume_status));
                  locationTile.setFrontOnLongClickListener(new View.OnLongClickListener() {
@@ -1123,8 +1092,6 @@ class QuickSettings {
                            if (mLocationController.isLocationEnabled()) {
                                if (mLocationController.setBackLocationEnabled(newLocationMode)) {
                                    if (mLocationController.isLocationAllowPanelCollapse()) {
-                                       // If we've successfully switched from location off to on, close the
-                                       // notifications tray to show the network location provider consent dialog.
                                        Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
                                        mContext.sendBroadcast(closeDialog);
                                    }
@@ -1151,7 +1118,7 @@ class QuickSettings {
                }
             }
         }
-        if(!addMissing) addTiles(parent, true, false, mRibbon);
+        if(!addMissing) addTiles(parent, true, false);
     }
 
     private void addTemporaryTiles(final ViewGroup parent) {
@@ -1280,29 +1247,9 @@ class QuickSettings {
         return array;
     }
 
-    public void shutdown() {
-        if (mReceiver != null) {
-            mContext.unregisterReceiver(mReceiver);
-        }
-        if (mProfileReceiver != null) {
-            mContext.unregisterReceiver(mProfileReceiver);
-        }
-        if (mModel != null) {
-            mModel = null;
-        }
-        if (mContainerView != null) {
-            mContainerView.removeAllViews();
-        }
-        if (mRibbon) {
-            mRibbon = false;
-        }
-    }
-
     public void updateTiles() {
-        addTiles(mContainerView, false, true, mRibbon);
-        if (!mRibbon) {
-            addTemporaryTiles(mContainerView);
-        }
+        addTiles(mContainerView, false, true);
+        addTemporaryTiles(mContainerView);
         updateResources();
     }
 
@@ -1314,9 +1261,6 @@ class QuickSettings {
 
         QuickSettingsContainerView container = ((QuickSettingsContainerView)mContainerView);
 
-        if (mRibbon) {
-            container.updateRibbonMode();
-        }
         container.updateSpan();
         container.updateResources();
         mContainerView.requestLayout();
@@ -1376,9 +1320,7 @@ class QuickSettings {
         }
         if (mTilesSetUp) {
             queryForUserInformation();
-            if (!mRibbon) {
-                queryForSslCaCerts();
-            }
+            queryForSslCaCerts();
         }
     }
 
@@ -1403,9 +1345,7 @@ class QuickSettings {
                     queryForUserInformation();
                 }
             } else if (KeyChain.ACTION_STORAGE_CHANGED.equals(action)) {
-                if (!mRibbon) {
-                    queryForSslCaCerts();
-                }
+                queryForSslCaCerts();
             }
         }
     };

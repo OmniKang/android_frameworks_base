@@ -41,7 +41,6 @@ public class QuickSettingsTileFlip3d extends GestureDetector.SimpleOnGestureList
     private DecelerateInterpolator mInterpolator;
     private boolean mFlingCancelClamp = false;
     private boolean mFrontSideOnDown = true;
-    private boolean mRibbonMode = false;
 
     public QuickSettingsTileFlip3d(ViewGroup front, ViewGroup back) {
         // In the initial state, the front tile is displayed, so degrees = 0
@@ -66,10 +65,6 @@ public class QuickSettingsTileFlip3d extends GestureDetector.SimpleOnGestureList
 
     public ViewGroup getBack() {
         return mBack;
-    }
-
-    public void switchToRibbonMode() {
-        mRibbonMode = true;
     }
 
     public void rotateToFront(boolean fromLeft) {
@@ -101,65 +96,29 @@ public class QuickSettingsTileFlip3d extends GestureDetector.SimpleOnGestureList
 
     public void rotateTo(float degrees) {
         mDegrees = degrees;
-        if (mRibbonMode) {
-            mFront.animate().setInterpolator(this).setDuration(150).rotationX(degrees).start();
-            mBack.animate().setInterpolator(this).setDuration(150).rotationX(-180.0f + degrees).start();
-        } else {
-            mFront.animate().setInterpolator(this).setDuration(150).rotationY(degrees).start();
-            mBack.animate().setInterpolator(this).setDuration(150).rotationY(-180.0f + degrees).start();
-        }
+        mFront.animate().setInterpolator(this).setDuration(150).rotationY(degrees).start();
+        mBack.animate().setInterpolator(this).setDuration(150).rotationY(-180.0f + degrees).start();
         updateVisibility();
         mDegrees = mDegrees % 360.0f;
-    }
-
-    public void rotateReset() {
-        if (mRibbonMode) {
-            if (isFrontSide()) {
-                mFront.animate().setInterpolator(this).setDuration(150).rotationX(0).start();
-            } else {
-                mBack.animate().setInterpolator(this).setDuration(150).rotationX(0).start();
-            }
-        } else {
-            if (isFrontSide()) {
-                mFront.animate().setInterpolator(this).setDuration(150).rotationY(0).start();
-            } else {
-                mBack.animate().setInterpolator(this).setDuration(150).rotationY(0).start();
-            }
-        }
     }
 
     private void updateRotation() {
         // Decide what view to display. We can rotate both to the right or to the left, so we
         // have to catch both -90 and 90 degrees.
-        if (mRibbonMode) {
-            mFront.setRotationX(mDegrees);
-            mBack.setRotationX(-180.0f + mDegrees);
-        } else {
-            mFront.setRotationY(mDegrees);
-            mBack.setRotationY(-180.0f + mDegrees);
-        }
+        mFront.setRotationY(mDegrees);
+        mBack.setRotationY(-180.0f + mDegrees);
         updateVisibility();
     }
 
     private void updateVisibility() {
         double absRotationY = Math.abs(mFront.getRotationY());
-        double absRotationX = Math.abs(mFront.getRotationX());
-        if (mRibbonMode) {
-            if (absRotationX > 90 && absRotationX < 270) {
-                mFront.setVisibility(View.GONE);
-                mBack.setVisibility(View.VISIBLE);
-            } else {
-                mFront.setVisibility(View.VISIBLE);
-                mBack.setVisibility(View.GONE);
-            }
+
+        if (absRotationY > 90 && absRotationY < 270) {
+            mFront.setVisibility(View.GONE);
+            mBack.setVisibility(View.VISIBLE);
         } else {
-            if (absRotationY > 90 && absRotationY < 270) {
-                mFront.setVisibility(View.GONE);
-                mBack.setVisibility(View.VISIBLE);
-            } else {
-                mFront.setVisibility(View.VISIBLE);
-                mBack.setVisibility(View.GONE);
-            }
+            mFront.setVisibility(View.VISIBLE);
+            mBack.setVisibility(View.GONE);
         }
     }
 
@@ -195,13 +154,9 @@ public class QuickSettingsTileFlip3d extends GestureDetector.SimpleOnGestureList
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         mDetector.onTouchEvent(event);
-        int action = event.getAction();
-        if (action == MotionEvent.ACTION_CANCEL) {
-            rotateReset();
-            dispatchEventToActive(event);
-        } else if (action == MotionEvent.ACTION_UP) {
+        if (event.getAction() == MotionEvent.ACTION_UP) {
             if (!mFlingCancelClamp) {
-                clampRotation();
+              clampRotation();
             }
             mFlingCancelClamp = false;
 
@@ -212,27 +167,15 @@ public class QuickSettingsTileFlip3d extends GestureDetector.SimpleOnGestureList
 
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float dX, float dY) {
-        float width = isFrontSide() ? mFront.getWidth() : mBack.getWidth();
-        float height = isFrontSide() ? mFront.getHeight() : mBack.getHeight();
+        float width = mFront.getVisibility() == View.VISIBLE ? mFront.getWidth() : mBack.getWidth();
 
-        if (mRibbonMode) {
-            if (height > 0) {
-                double radians = Math.toRadians(-dY * 0.5f);
-                radians = Math.max(-1, radians);
-                radians = Math.min(1, radians);
+        if (width > 0) {
+            double radians = Math.toRadians(-dX * 0.5f);
+            radians = Math.max(-1, radians);
+            radians = Math.min(1, radians);
 
-                float angle = (float) Math.toDegrees(Math.asin(radians));
-                rotateBy(angle);
-            }
-        } else {
-            if (width > 0) {
-                double radians = Math.toRadians(-dX * 0.5f);
-                radians = Math.max(-1, radians);
-                radians = Math.min(1, radians);
-
-                float angle = (float) Math.toDegrees(Math.asin(radians));
-                rotateBy(angle);
-            }
+            float angle = (float) Math.toDegrees(Math.asin(radians));
+            rotateBy(angle);
         }
 
         // Cancel events on the children view (if any)
@@ -245,24 +188,14 @@ public class QuickSettingsTileFlip3d extends GestureDetector.SimpleOnGestureList
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        if (mRibbonMode) {
-            if (Math.abs(velocityY) > VELOCITY_THRESHOLD && isFrontSide() == mFrontSideOnDown) {
-                if (isFrontSide()) {
-                    rotateToBack(velocityY > 0.0);
-                } else {
-                    rotateToFront(velocityY > 0.0);
-                }
-                mFlingCancelClamp = true;
+        if (Math.abs(velocityX) > VELOCITY_THRESHOLD && isFrontSide() == mFrontSideOnDown) {
+            if (isFrontSide()) {
+                rotateToBack(velocityX > 0.0);
+            } else {
+                rotateToFront(velocityX > 0.0);
             }
-        } else {
-            if (Math.abs(velocityX) > VELOCITY_THRESHOLD && isFrontSide() == mFrontSideOnDown) {
-                if (isFrontSide()) {
-                    rotateToBack(velocityX > 0.0);
-                } else {
-                    rotateToFront(velocityX > 0.0);
-                }
-                mFlingCancelClamp = true;
-            }
+
+            mFlingCancelClamp = true;
         }
 
         return true;
