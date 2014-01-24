@@ -2635,6 +2635,13 @@ public final class Settings {
         public static final String STATUS_BAR_NETWORK_STATS = "status_bar_network_stats";
 
         /**
+         * Disable safe volume warning with headphones
+         *
+         * @hide
+         */
+        public static final String DISABLE_SAFE_VOLUME = "disable_safe_volume";
+
+        /**
          * If On-The-Go should be displayed at the power menu.
          *
          * @hide

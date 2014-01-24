@@ -2612,6 +2612,13 @@ public class AudioService extends IAudioService.Stub {
                 boolean safeMediaVolumeEnabled = mContext.getResources().getBoolean(
                         com.android.internal.R.bool.config_safe_media_volume_enabled);
 
+                if (Settings.System.getIntForUser(mContext.getContentResolver(),
+                            Settings.System.DISABLE_SAFE_VOLUME,
+                            0,
+                            UserHandle.USER_CURRENT) != 0) {
+                    safeMediaVolumeEnabled = false;
+                }
+
                 // The persisted state is either "disabled" or "active": this is the state applied
                 // next time we boot and cannot be "inactive"
                 int persistedState;
