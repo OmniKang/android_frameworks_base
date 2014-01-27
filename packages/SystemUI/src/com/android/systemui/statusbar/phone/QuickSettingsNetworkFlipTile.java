@@ -55,6 +55,9 @@ class QuickSettingsNetworkFlipTile extends QuickSettingsTileView {
 
         mBack.setVisibility(View.GONE);
 
+        mFront.setTemporary(true);
+        mBack.setTemporary(true);
+
         addView(mFront,
                 new FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.MATCH_PARENT,

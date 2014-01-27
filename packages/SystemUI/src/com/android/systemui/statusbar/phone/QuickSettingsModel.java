@@ -398,6 +398,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     private ConnectivityManager mCM;
     private TelephonyManager mTM;
     private WifiManager mWifiManager;
+
     private boolean mUsbTethered = false;
     private boolean mUsbConnected = false;
     private boolean mMassStorageActive = false;

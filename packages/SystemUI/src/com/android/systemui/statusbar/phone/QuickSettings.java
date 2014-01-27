@@ -560,6 +560,7 @@ class QuickSettings {
                   });
                   final ConnectivityManager cm =
                          (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+
                   wifiTile.setBackOnLongClickListener(new View.OnLongClickListener() {
                       @Override
                       public boolean onLongClick(View v) {
@@ -594,7 +595,6 @@ class QuickSettings {
                                   break;
                           }
                   }} );
-
                   mModel.addWifiBackTile(wifiTile.getBack(), new QuickSettingsModel.RefreshCallback() {
                         @Override
                         public void refreshView(QuickSettingsTileView unused, State state) {
@@ -662,11 +662,11 @@ class QuickSettings {
                                 rssiTile.setFrontImageResource(rssiState.signalIconId);
 
                                 if (rssiState.dataTypeIconId > 0) {
-                                    rssiTile.setFrontImageOverlayResource(rssiState.dataTypeIconId);
+                                    rssiTile.setImageOverlayResource(rssiState.dataTypeIconId);
                                 } else if (rssiState.dataTypeIconId == 0 && cms.getMobileDataEnabled()) {
-                                    rssiTile.setFrontImageOverlayDrawable(null);
+                                    rssiTile.setImageOverlayDrawable(null);
                                 } else {
-                                    rssiTile.setFrontImageOverlayResource(R.drawable.ic_qs_signal_data_off);
+                                    rssiTile.setImageOverlayResource(R.drawable.ic_qs_signal_data_off);
                                 }
                                 setActivity(view, rssiState);
 

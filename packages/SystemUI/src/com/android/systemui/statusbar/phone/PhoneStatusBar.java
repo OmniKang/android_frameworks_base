@@ -2231,6 +2231,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
             mNotificationButton.setVisibility(View.VISIBLE);
             mNotificationButton.setAlpha(percent);
         }
+        mEditModeButton.setVisibility(View.GONE);
         mClearButton.setVisibility(View.GONE);
     }
 

@@ -3390,7 +3390,6 @@ public final class Settings {
         public static final String LOCKSCREEN_QUICK_UNLOCK_CONTROL = "lockscreen_quick_unlock_control";
 
         /**
-<<<<<<< HEAD
          * whether which Ram Usage Bar mode is used on recent switcher
          * 0 = none, 1 = only app use, 2 = app and cache use, 3 = app, cache and system use
          * @hide
@@ -3406,9 +3405,6 @@ public final class Settings {
 
         /**
          * Ram Usage Bar cached mem color
-=======
-         * Volume key controls ringtone or media sound stream
->>>>>>> 6cbbcfa... [1/2] Base: QS Ribbon style
          *
          * @hide
          */
