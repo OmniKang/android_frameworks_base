@@ -661,11 +661,11 @@ class QuickSettings {
                                 rssiTile.setFrontImageResource(rssiState.signalIconId);
 
                                 if (rssiState.dataTypeIconId > 0) {
-                                    rssiTile.setImageOverlayResource(rssiState.dataTypeIconId);
+                                    rssiTile.setFrontImageOverlayResource(rssiState.dataTypeIconId);
                                 } else if (rssiState.dataTypeIconId == 0 && cms.getMobileDataEnabled()) {
-                                    rssiTile.setImageOverlayDrawable(null);
+                                    rssiTile.setFrontImageOverlayDrawable(null);
                                 } else {
-                                    rssiTile.setImageOverlayResource(R.drawable.ic_qs_signal_data_off);
+                                    rssiTile.setFrontImageOverlayResource(R.drawable.ic_qs_signal_data_off);
                                 }
                                 setActivity(view, rssiState);
 
@@ -774,8 +774,8 @@ class QuickSettings {
                                         : mContext.getString(R.string.quick_settings_battery_discharging);
                                 }
                             }
-                            ((TextView)mBatteryTile.findViewById(R.id.text)).setFrontText(t);
-                            ((TextView)mBatteryTile.findViewById(R.id.text)).setFrontTextSize(TypedValue.COMPLEX_UNIT_PX, unused.getTextSizes());
+                            mBatteryTile.setFrontText(t);
+                            //mBatteryTile.setFrontTextSize(TypedValue.COMPLEX_UNIT_PX, unused.getTextSizes());
                             mBatteryTile.setFrontContentDescription(
                             mContext.getString(R.string.accessibility_quick_settings_battery, t));
                         }
