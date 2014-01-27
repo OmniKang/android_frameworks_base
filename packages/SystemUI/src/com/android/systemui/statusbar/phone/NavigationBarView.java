@@ -35,7 +35,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
-import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
@@ -381,9 +380,7 @@ public class NavigationBarView extends LinearLayout {
         getRecentsButton().setVisibility(disableRecent     ? View.INVISIBLE : View.VISIBLE);
 
         final boolean showSearch = disableHome && !disableSearch;
-        final boolean showCamera = showSearch && !mCameraDisabledByDpm &&
-                Settings.System.getInt(getContext().getContentResolver(),
-                Settings.System.LOCKSCREEN_ENABLE_CAMERA, 1) == 1;
+        final boolean showCamera = showSearch && !mCameraDisabledByDpm;
         setVisibleOrGone(getSearchLight(), showSearch);
         setVisibleOrGone(getCameraButton(), showCamera);
 
