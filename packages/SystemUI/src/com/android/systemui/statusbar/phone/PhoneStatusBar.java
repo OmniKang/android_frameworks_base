@@ -795,7 +795,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
         mClearButton = mStatusBarWindow.findViewById(R.id.clear_all_button);
         mClearButton.setOnClickListener(mClearButtonListener);
         mClearButton.setAlpha(0f);
-        mClearButton.setVisibility(View.GONE);
+        mClearButton.setVisibility(View.INVISIBLE);
         mClearButton.setEnabled(false);
         mDateView = (DateView)mStatusBarWindow.findViewById(R.id.date);
         if (mDateView != null) {
@@ -1671,7 +1671,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
                 && mFlipSettingsView.getVisibility() == View.VISIBLE
                 && mScrollView.getVisibility() != View.VISIBLE) {
             // the flip settings panel is unequivocally showing; we should not be shown
-            mClearButton.setVisibility(View.GONE);
+            mClearButton.setVisibility(View.INVISIBLE);
         } else if (mClearButton.isShown()) {
             if (clearable != (mClearButton.getAlpha() == 1.0f)) {
                 ObjectAnimator clearAnimation = ObjectAnimator.ofFloat(
@@ -1680,7 +1680,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         if (mClearButton.getAlpha() <= 0.0f) {
-                            mClearButton.setVisibility(View.GONE);
+                            mClearButton.setVisibility(View.INVISIBLE);
                         }
                     }
 
@@ -1695,7 +1695,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
             }
         } else {
             mClearButton.setAlpha(clearable ? 1.0f : 0.0f);
-            mClearButton.setVisibility(clearable ? View.VISIBLE : View.GONE);
+            mClearButton.setVisibility(clearable ? View.VISIBLE : View.INVISIBLE);
         }
         mClearButton.setEnabled(clearable);
 
@@ -2077,6 +2077,11 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
         final boolean halfWayDone = mScrollView.getVisibility() == View.VISIBLE;
         final int zeroOutDelays = halfWayDone ? 0 : 1;
 
+        if (!halfWayDone) {
+            mScrollView.setScaleX(0f);
+            mFlipSettingsView.setScaleX(1f);
+        }
+
         mScrollView.setVisibility(View.VISIBLE);
         mScrollViewAnim = start(
             startDelay(FLIP_DURATION_OUT * zeroOutDelays,
@@ -2197,6 +2202,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
         if (mScrollViewAnim != null) mScrollViewAnim.cancel();
         if (mSettingsButtonAnim != null) mSettingsButtonAnim.cancel();
         if (mNotificationButtonAnim != null) mNotificationButtonAnim.cancel();
+        if (mEditModeButtonAnim != null) mEditModeButtonAnim.cancel();
         if (mClearButtonAnim != null) mClearButtonAnim.cancel();
 
         percent = Math.min(Math.max(percent, -1f), 1f);
@@ -2764,9 +2770,9 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
     }
 
     private void checkUserAutohide(View v, MotionEvent event) {
-        if ((mSystemUiVisibility & STATUS_OR_NAV_TRANSIENT) != 0  // a transient bar is revealed
+        if ((mSystemUiVisibility & STATUS_OR_NAV_TRANSIENT) != 0 // a transient bar is revealed
                 && event.getAction() == MotionEvent.ACTION_OUTSIDE // touch outside the source bar
-                && event.getX() == 0 && event.getY() == 0  // a touch outside both bars
+                && event.getX() == 0 && event.getY() == 0 // a touch outside both bars
                 ) {
             userAutohide();
         }
@@ -2926,71 +2932,71 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
     public void dump(FileDescriptor fd, PrintWriter pw, String[] args) {
         synchronized (mQueueLock) {
             pw.println("Current Status Bar state:");
-            pw.println("  mExpandedVisible=" + mExpandedVisible
+            pw.println(" mExpandedVisible=" + mExpandedVisible
                     + ", mTrackingPosition=" + mTrackingPosition);
-            pw.println("  mTicking=" + mTicking);
-            pw.println("  mTracking=" + mTracking);
-            pw.println("  mDisplayMetrics=" + mDisplayMetrics);
-            pw.println("  mPile: " + viewInfo(mPile));
-            pw.println("  mTickerView: " + viewInfo(mTickerView));
-            pw.println("  mScrollView: " + viewInfo(mScrollView)
+            pw.println(" mTicking=" + mTicking);
+            pw.println(" mTracking=" + mTracking);
+            pw.println(" mDisplayMetrics=" + mDisplayMetrics);
+            pw.println(" mPile: " + viewInfo(mPile));
+            pw.println(" mTickerView: " + viewInfo(mTickerView));
+            pw.println(" mScrollView: " + viewInfo(mScrollView)
                     + " scroll " + mScrollView.getScrollX() + "," + mScrollView.getScrollY());
         }
 
-        pw.print("  mInteractingWindows="); pw.println(mInteractingWindows);
-        pw.print("  mStatusBarWindowState=");
+        pw.print(" mInteractingWindows="); pw.println(mInteractingWindows);
+        pw.print(" mStatusBarWindowState=");
         pw.println(windowStateToString(mStatusBarWindowState));
-        pw.print("  mStatusBarMode=");
+        pw.print(" mStatusBarMode=");
         pw.println(BarTransitions.modeToString(mStatusBarMode));
         dumpBarTransitions(pw, "mStatusBarView", mStatusBarView.getBarTransitions());
         if (mNavigationBarView != null) {
-            pw.print("  mNavigationBarWindowState=");
+            pw.print(" mNavigationBarWindowState=");
             pw.println(windowStateToString(mNavigationBarWindowState));
-            pw.print("  mNavigationBarMode=");
+            pw.print(" mNavigationBarMode=");
             pw.println(BarTransitions.modeToString(mNavigationBarMode));
             dumpBarTransitions(pw, "mNavigationBarView", mNavigationBarView.getBarTransitions());
         }
 
-        pw.print("  mNavigationBarView=");
+        pw.print(" mNavigationBarView=");
         if (mNavigationBarView == null) {
             pw.println("null");
         } else {
             mNavigationBarView.dump(fd, pw, args);
         }
 
-        pw.println("  Panels: ");
+        pw.println(" Panels: ");
         if (mNotificationPanel != null) {
-            pw.println("    mNotificationPanel=" +
+            pw.println(" mNotificationPanel=" +
                 mNotificationPanel + " params=" + mNotificationPanel.getLayoutParams().debug(""));
-            pw.print  ("      ");
+            pw.print (" ");
             mNotificationPanel.dump(fd, pw, args);
         }
         if (mSettingsPanel != null) {
-            pw.println("    mSettingsPanel=" +
+            pw.println(" mSettingsPanel=" +
                 mSettingsPanel + " params=" + mSettingsPanel.getLayoutParams().debug(""));
-            pw.print  ("      ");
+            pw.print (" ");
             mSettingsPanel.dump(fd, pw, args);
         }
 
         if (DUMPTRUCK) {
             synchronized (mNotificationData) {
                 int N = mNotificationData.size();
-                pw.println("  notification icons: " + N);
+                pw.println(" notification icons: " + N);
                 for (int i=0; i<N; i++) {
                     NotificationData.Entry e = mNotificationData.get(i);
-                    pw.println("    [" + i + "] key=" + e.key + " icon=" + e.icon);
+                    pw.println(" [" + i + "] key=" + e.key + " icon=" + e.icon);
                     StatusBarNotification n = e.notification;
-                    pw.println("         pkg=" + n.getPackageName() + " id=" + n.getId() + " score=" + n.getScore());
-                    pw.println("         notification=" + n.getNotification());
-                    pw.println("         tickerText=\"" + n.getNotification().tickerText + "\"");
+                    pw.println(" pkg=" + n.getPackageName() + " id=" + n.getId() + " score=" + n.getScore());
+                    pw.println(" notification=" + n.getNotification());
+                    pw.println(" tickerText=\"" + n.getNotification().tickerText + "\"");
                 }
             }
 
             int N = mStatusIcons.getChildCount();
-            pw.println("  system icons: " + N);
+            pw.println(" system icons: " + N);
             for (int i=0; i<N; i++) {
                 StatusBarIconView ic = (StatusBarIconView) mStatusIcons.getChildAt(i);
-                pw.println("    [" + i + "] icon=" + ic);
+                pw.println(" [" + i + "] icon=" + ic);
             }
 
             if (false) {
@@ -3009,7 +3015,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
         }
 
         if (DEBUG_GESTURES) {
-            pw.print("  status bar gestures: ");
+            pw.print(" status bar gestures: ");
             mGestureRec.dump(fd, pw, args);
         }
 
@@ -3017,7 +3023,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
     }
 
     private static void dumpBarTransitions(PrintWriter pw, String var, BarTransitions transitions) {
-        pw.print("  "); pw.print(var); pw.print(".BarTransitions.mMode=");
+        pw.print(" "); pw.print(var); pw.print(".BarTransitions.mMode=");
         pw.println(BarTransitions.modeToString(transitions.getMode()));
     }
 
@@ -3233,7 +3239,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
     private View.OnLongClickListener mEditModeLongButtonListener = new View.OnLongClickListener() {
         public boolean onLongClick(View v) {
             if (mSettingsContainer != null) {
-                if (mAnimatingEditModeButton 
+                if (mAnimatingEditModeButton
                     && mSettingsContainer.isEditModeEnabled()) {
                     return false;
                 }
