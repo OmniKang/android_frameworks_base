@@ -291,7 +291,7 @@ public class SlimActions {
         return false;
     }
 
-    public static void triggerVirtualKeypress(final int keyCode, boolean longpress) {
+    private static void triggerVirtualKeypress(final int keyCode, boolean longpress) {
         InputManager im = InputManager.getInstance();
         long now = SystemClock.uptimeMillis();
         int downflags = 0;
