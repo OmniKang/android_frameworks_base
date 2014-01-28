@@ -4029,6 +4029,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
               || (mImmersiveModeStyle == IMMERSIVE_MODE_HIDE_ONLY_STATUSBAR);
     }
 
+    /** {@inheritDoc} */
+    public void toggleGlobalMenu() {
+        mHandler.post(mGlobalMenu);
+    }
+
     private void offsetInputMethodWindowLw(WindowState win) {
         int top = win.getContentFrameLw().top;
         top += win.getGivenContentInsetsLw().top;
