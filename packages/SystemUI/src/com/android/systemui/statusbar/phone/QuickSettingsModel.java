@@ -434,8 +434,8 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     private final ImmersiveObserver mImmersiveObserver;
     private final QuiteHourObserver mQuiteHourObserver;
     private final RingerObserver mRingerObserver;
-    private LocationController mLocationController;
     private final SleepObserver mSleepObserver;
+    private LocationController mLocationController;
     private final NetworkObserver mMobileNetworkObserver;
 
     private ConnectivityManager mCM;
@@ -476,7 +476,6 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
 
     private final boolean mHasMobileData;
     private long mLastClickTime = 0;
-
     private boolean mRibbon = false;
 
     private QuickSettingsTileView mUserTile;
