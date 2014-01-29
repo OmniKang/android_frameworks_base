@@ -46,7 +46,7 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
-import com.android.internal.util.mahdi.QuietHoursHelper;
+import com.android.internal.util.slim.QuietHoursHelper;
 
 import java.util.HashMap;
 
