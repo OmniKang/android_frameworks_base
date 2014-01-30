@@ -870,7 +870,13 @@ public class NavigationBarView extends LinearLayout {
             mRotatedViews[i].setVisibility(View.GONE);
         }
 
-        if (!mNavigationBarCanMove) {
+        boolean navigationBarCanMove = DeviceUtils.isPhone(mContext) ?
+                Settings.System.getIntForUser(mContext.getContentResolver(),
+                        Settings.System.NAVIGATION_BAR_CAN_MOVE, 1,
+                        UserHandle.USER_CURRENT) == 1
+                : false;
+
+        if (!navigationBarCanMove) {
             mCurrentView = mRotatedViews[Surface.ROTATION_0];
         } else {
             mCurrentView = mRotatedViews[rot];

@@ -101,9 +101,6 @@ public class SearchPanelView extends FrameLayout implements
     private int mTarget;
     private boolean mAppIsBinded;
 
-    private boolean mNavigationBarCanMove;
-    private boolean mGlowPadViewNotSet;
-
     public SearchPanelView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
@@ -153,15 +150,11 @@ public class SearchPanelView extends FrameLayout implements
             if (target == -1) {
                 mHandler.removeCallbacks(SetLongPress);
                 mLongPress = false;
-            } else {
-                if (mLongList.get(target) == null
-                    || mLongList.get(target).equals("")
-                    || mLongList.get(target).equals("none")) {
-                //pretend like nothing happened
-                } else {
-                    mTarget = target;
-                    mHandler.postDelayed(SetLongPress, ViewConfiguration.getLongPressTimeout());
-                }
+            } else if (mLongList.get(target) != null
+                    && !mLongList.get(target).isEmpty()
+                    && !mLongList.get(target).equals(ButtonsConstants.ACTION_NULL)) {
+                mTarget = target;
+                mHandler.postDelayed(SetLongPress, ViewConfiguration.getLongPressTimeout());
             }
         }
 
@@ -254,10 +247,7 @@ public class SearchPanelView extends FrameLayout implements
         // TODO: fetch views
         mGlowPadView = (GlowPadView) findViewById(R.id.glow_pad_view);
         mGlowPadView.setOnTriggerListener(mGlowPadViewListener);
-        if (mGlowPadViewNotSet) {
-            mGlowPadViewNotSet = false;
-            setDrawables();
-        }
+        updateSettings();
     }
 
     private void maybeSwapSearchIcon() {
@@ -405,12 +395,7 @@ public class SearchPanelView extends FrameLayout implements
         return mResources.getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
     }
 
-    public void setDrawables() {
-        if (mGlowPadView == null) {
-            mGlowPadViewNotSet = true;
-            return;
-        }
-
+    private void setDrawables() {
         mLongPress = false;
         mAppIsBinded = false;
         mSearchPanelLock = false;
@@ -422,7 +407,13 @@ public class SearchPanelView extends FrameLayout implements
         int startPosOffset;
         ButtonConfig buttonConfig;
 
-        if (isScreenPortrait() || !mNavigationBarCanMove) {
+        boolean navigationBarCanMove = DeviceUtils.isPhone(mContext) ?
+                Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.NAVIGATION_BAR_CAN_MOVE, 1,
+                    UserHandle.USER_CURRENT) == 1
+                : false;
+
+        if (isScreenPortrait() || !navigationBarCanMove) {
             startPosOffset = 1;
             endPosOffset = (mButtonsConfig.size()) + 1;
         } else {
@@ -471,6 +462,19 @@ public class SearchPanelView extends FrameLayout implements
                 mResources, mResources.getDrawable(R.drawable.ic_navbar_placeholder));
             blankDrawable.setEnabled(false);
             return blankDrawable;
+        }
+
+        if (!action.startsWith("**") && pm != null) {
+            mAppIsBinded = true;
+            try {
+                Intent in = Intent.parseUri(action, 0);
+                aInfo = in.resolveActivityInfo(pm, PackageManager.GET_ACTIVITIES);
+                if (aInfo == null) {
+                    return noneDrawable;
+                }
+            } catch (Exception e) {
+                return noneDrawable;
+            }
         }
 
         if (customIconUri != null && !customIconUri.equals(ButtonsConstants.ICON_EMPTY)
@@ -550,28 +554,9 @@ public class SearchPanelView extends FrameLayout implements
             return new TargetDrawable(
                 mResources, com.android.internal.R.drawable.ic_action_assist_generic);
 
-        if (!action.startsWith("**") && pm != null) {
-            try {
-                mAppIsBinded = true;
-                Drawable d = null;
-                String extraIconPath = action.replaceAll(".*?hasExtraIcon=", "");
-                if (extraIconPath != null && !extraIconPath.isEmpty()) {
-                    File f = new File(Uri.parse(extraIconPath).getPath());
-                    if (f.exists()) {
-                        d = new BitmapDrawable(mContext.getResources(),
-                                f.getAbsolutePath());
-                    }
-                }
-                if (d == null) {
-                    d = pm.getActivityIcon(Intent.parseUri(action, 0));
-                }
-                return new TargetDrawable(mResources,
-                        setStateListDrawable(ImageHelper.resize(mContext, d, 50)));
-            } catch (NameNotFoundException e) {
-                e.printStackTrace();
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            }
+        if (aInfo != null && pm != null) {
+            return new TargetDrawable(mResources,
+                setStateListDrawable(ImageHelper.resize(mContext, aInfo.loadIcon(pm), 50)));
         }
         return noneDrawable;
     }
