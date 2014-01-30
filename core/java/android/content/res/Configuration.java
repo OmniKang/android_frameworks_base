@@ -20,6 +20,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 
 import java.util.Locale;
@@ -35,6 +36,8 @@ import java.util.Locale;
  * <pre>Configuration config = getResources().getConfiguration();</pre>
  */
 public final class Configuration implements Parcelable, Comparable<Configuration> {
+    private static final String LOG_TAG = "Configuration";
+
     /** @hide */
     public static final Configuration EMPTY = new Configuration();
 
@@ -736,12 +739,27 @@ public final class Configuration implements Parcelable, Comparable<Configuration
             default: sb.append(" orien="); sb.append(orientation); break;
         }
         switch (uiThemeMode) {
-            case UI_THEME_MODE_UNDEFINED: sb.append(" ?uithememode"); break;
+            case UI_THEME_MODE_UNDEFINED:
+                sb.append(" ?uithememode");
+                Log.i(LOG_TAG, "TRDS: uiThemeMode: UI_THEME_MODE_UNDEFINED");
+                break;
             /* normal is not interesting to print it is default behaviour*/
-            case UI_THEME_MODE_NORMAL: break;
-            case UI_THEME_MODE_HOLO_DARK: sb.append(" holodark"); break;
-            case UI_THEME_MODE_HOLO_LIGHT: sb.append(" hololight"); break;
-            default: sb.append(" uiThemeMode="); sb.append(uiThemeMode); break;
+            case UI_THEME_MODE_NORMAL:
+                Log.i(LOG_TAG, "TRDS: uiThemeMode: UI_THEME_MODE_NORMAL");
+                break;
+            case UI_THEME_MODE_HOLO_DARK:
+                sb.append(" holodark");
+                Log.i(LOG_TAG, "TRDS: uiThemeMode: UI_THEME_MODE_HOLO_DARK");
+                break;
+            case UI_THEME_MODE_HOLO_LIGHT:
+                sb.append(" hololight");
+                Log.i(LOG_TAG, "TRDS: uiThemeMode: UI_THEME_MODE_HOLO_LIGHT");
+                break;
+            default:
+                sb.append(" uiThemeMode=");
+                sb.append(uiThemeMode);
+                Log.i(LOG_TAG, "TRDS: uiThemeMode: N/A");
+                break;
         }
         switch ((uiMode&UI_MODE_TYPE_MASK)) {
             case UI_MODE_TYPE_UNDEFINED: sb.append(" ?uimode"); break;

@@ -46,6 +46,7 @@ import android.os.ServiceManager;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.service.dreams.Sandman;
+import android.util.Log;
 import android.util.Slog;
 
 import java.io.FileDescriptor;
@@ -260,6 +261,8 @@ final class UiModeManagerService extends IUiModeManager.Stub
                 Settings.Secure.UI_THEME_MODE, mContext.getResources().getInteger(
                 com.android.internal.R.integer.config_uiThemeMode),
                 UserHandle.USER_CURRENT);
+
+        Log.i(TAG, "TRDS: UI_THEME_MODE = " + mUiThemeMode);
 
         mConfiguration.uiThemeMode = mUiThemeMode;
 

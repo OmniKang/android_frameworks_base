@@ -3525,6 +3525,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
         // detect theme ui mode change
         int uiThemeMode = res.getConfiguration().uiThemeMode;
         if (uiThemeMode != mCurrUiThemeMode) {
+            Log.i(TAG, "TRDS: uiThemeMode != mCurrUiThemeMode");
             mCurrUiThemeMode = uiThemeMode;
             recreateStatusBar(false);
         } else {
