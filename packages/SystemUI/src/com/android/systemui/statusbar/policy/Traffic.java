@@ -223,7 +223,11 @@ public class Traffic extends TextView {
 
             totalRxBytes = currentRxBytes;
             lastUpdateTime = SystemClock.elapsedRealtime();
-            getHandler().postDelayed(mRunnable, mRefreshInterval);
+            try {
+                getHandler().postDelayed(mRunnable, mRefreshInterval);
+            } catch (NullPointerException npe) {
+                // gone... e.g. on DarkUI switch
+            }
         }
     };
 
