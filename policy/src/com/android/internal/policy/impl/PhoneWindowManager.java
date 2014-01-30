@@ -107,6 +107,10 @@ import com.android.internal.policy.PolicyManager;
 import com.android.internal.policy.impl.keyguard.KeyguardServiceDelegate;
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.internal.telephony.ITelephony;
+import com.android.internal.util.slim.ButtonsConstants;
+import com.android.internal.util.slim.Converter;
+import com.android.internal.util.slim.HwKeyHelper;
+import com.android.internal.util.slim.SlimActions;
 import com.android.internal.widget.PointerLocationView;
 import com.android.internal.util.omni.OmniTorchConstants;
 import com.android.internal.util.omni.TaskUtils;
@@ -1468,9 +1472,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         int longSizeDp = longSize * DisplayMetrics.DENSITY_DEFAULT / density;
 
         // Allow the navigation bar to move on small devices (phones).
-        mNavigationBarCanMove = Settings.System.getIntForUser(mContext.getContentResolver(),
-                    Settings.System.NAVIGATION_BAR_CAN_MOVE,
-                    mShortSizeDp < 600 ? 1 : 0, UserHandle.USER_CURRENT) == 1;
+        mNavigationBarCanMove = mShortSizeDp < 600 ?
+                Settings.System.getIntForUser(mContext.getContentResolver(),
+                        Settings.System.NAVIGATION_BAR_CAN_MOVE, 1,
+                        UserHandle.USER_CURRENT) == 1
+                : false;
 
         final int showByDefault = mContext.getResources().getBoolean(
                     com.android.internal.R.bool.config_showNavigationBar) ? 1 : 0;
@@ -1577,9 +1583,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
             updateKeyAssignments();
 
-            mNavigationBarCanMove = Settings.System.getIntForUser(resolver,
-                    Settings.System.NAVIGATION_BAR_CAN_MOVE,
-                    mShortSizeDp < 600 ? 1 : 0, UserHandle.USER_CURRENT) == 1;
+            mNavigationBarCanMove = mShortSizeDp < 600 ?
+                    Settings.System.getIntForUser(mContext.getContentResolver(),
+                            Settings.System.NAVIGATION_BAR_CAN_MOVE, 1,
+                            UserHandle.USER_CURRENT) == 1
+                    : false;
 
             final int showByDefault = mContext.getResources().getBoolean(
                     com.android.internal.R.bool.config_showNavigationBar) ? 1 : 0;
@@ -1587,61 +1595,44 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.System.NAVIGATION_BAR_SHOW, showByDefault,
                     UserHandle.USER_CURRENT) == 1;
 
-            if (!mHasNavigationBar) {
-                // Set the navigation bar's dimensions to 0 in expanded desktop mode
-                mNavigationBarWidthForRotation[mPortraitRotation]
-                        = mNavigationBarWidthForRotation[mUpsideDownRotation]
-                        = mNavigationBarWidthForRotation[mLandscapeRotation]
-                        = mNavigationBarWidthForRotation[mSeascapeRotation]
-                        = mNavigationBarHeightForRotation[mPortraitRotation]
-                        = mNavigationBarHeightForRotation[mUpsideDownRotation]
-                        = mNavigationBarHeightForRotation[mLandscapeRotation]
-                        = mNavigationBarHeightForRotation[mSeascapeRotation] = 0;
+            mNavigationBarHeight =
+                    Settings.System.getIntForUser(mContext.getContentResolver(),
+                            Settings.System.NAVIGATION_BAR_HEIGHT, -2,
+                            UserHandle.USER_CURRENT);
+            if (mNavigationBarHeight == -2) {
+                mNavigationBarHeight = mContext.getResources().getDimensionPixelSize(
+                        com.android.internal.R.dimen.navigation_bar_height);
             } else {
-                // Height of the navigation bar when presented horizontally at bottom *******
-                mNavigationBarHeightForRotation[mPortraitRotation] =
-                mNavigationBarHeightForRotation[mUpsideDownRotation] =
-                    Settings.System.getIntForUser(
-                        mContext.getContentResolver(),
-                        Settings.System.NAVIGATION_BAR_HEIGHT,
-                        mContext.getResources()
-                                .getDimensionPixelSize(
-                                    com.android.internal.R.dimen.navigation_bar_height),
-                        UserHandle.USER_CURRENT);
-                mNavigationBarHeightForRotation[mLandscapeRotation] =
-                mNavigationBarHeightForRotation[mSeascapeRotation] =
-                    Settings.System.getIntForUser(
-                        mContext.getContentResolver(),
-                        Settings.System.NAVIGATION_BAR_HEIGHT_LANDSCAPE,
-                        mContext.getResources()
-                                .getDimensionPixelSize(
-                                    com.android.internal.R.dimen.navigation_bar_height_landscape),
-                        UserHandle.USER_CURRENT);
-
-                // Width of the navigation bar when presented vertically along one side
-                mNavigationBarWidthForRotation[mPortraitRotation] =
-                mNavigationBarWidthForRotation[mUpsideDownRotation] =
-                mNavigationBarWidthForRotation[mLandscapeRotation] =
-                mNavigationBarWidthForRotation[mSeascapeRotation] =
-                    Settings.System.getIntForUser(
-                        mContext.getContentResolver(),
-                        Settings.System.NAVIGATION_BAR_WIDTH,
-                        mContext.getResources()
-                                .getDimensionPixelSize(
-                                    com.android.internal.R.dimen.navigation_bar_width),
-                        UserHandle.USER_CURRENT);
+                mNavigationBarHeight =
+                        Converter.dpToPx(mContext, mNavigationBarHeight);
             }
 
-            mNavigationBarCanMove = Settings.System.getIntForUser(resolver,
-                    Settings.System.NAVIGATION_BAR_CAN_MOVE,
-                    mShortSizeDp < 600 ? 1 : 0, UserHandle.USER_CURRENT) == 1;
+            mNavigationBarHeightLandscape =
+                    Settings.System.getIntForUser(mContext.getContentResolver(),
+                            Settings.System.NAVIGATION_BAR_HEIGHT_LANDSCAPE, -2,
+                            UserHandle.USER_CURRENT);
+            if (mNavigationBarHeightLandscape == -2) {
+                mNavigationBarHeightLandscape = mContext.getResources().getDimensionPixelSize(
+                        com.android.internal.R.dimen.navigation_bar_height_landscape);
+            } else {
+                mNavigationBarHeightLandscape =
+                        Converter.dpToPx(mContext, mNavigationBarHeightLandscape);
+            }
 
-            mHasNavigationBar = Settings.System.getIntForUser(resolver,
-                    Settings.System.NAVIGATION_BAR_SHOW, showByDefault,
-                    UserHandle.USER_CURRENT) == 1;
+            mNavigationBarWidth =
+                    Settings.System.getIntForUser(mContext.getContentResolver(),
+                            Settings.System.NAVIGATION_BAR_WIDTH, -2,
+                            UserHandle.USER_CURRENT);
+            if (mNavigationBarWidth == -2) {
+                mNavigationBarWidth = mContext.getResources().getDimensionPixelSize(
+                        com.android.internal.R.dimen.navigation_bar_width);
+            } else {
+                mNavigationBarWidth =
+                        Converter.dpToPx(mContext, mNavigationBarWidth);
+            }
 
             if (!mHasNavigationBar) {
-                // Set the navigation bar's dimensions to 0 in expanded desktop mode
+                // Set the navigation bar's dimensions to 0
                 mNavigationBarWidthForRotation[mPortraitRotation]
                         = mNavigationBarWidthForRotation[mUpsideDownRotation]
                         = mNavigationBarWidthForRotation[mLandscapeRotation]
@@ -1653,36 +1644,24 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             } else {
                 // Height of the navigation bar when presented horizontally at bottom *******
                 mNavigationBarHeightForRotation[mPortraitRotation] =
-                mNavigationBarHeightForRotation[mUpsideDownRotation] =
-                    Settings.System.getIntForUser(
-                        mContext.getContentResolver(),
-                        Settings.System.NAVIGATION_BAR_HEIGHT,
-                        mContext.getResources()
-                                .getDimensionPixelSize(
-                                    com.android.internal.R.dimen.navigation_bar_height),
-                        UserHandle.USER_CURRENT);
+                mNavigationBarHeightForRotation[mUpsideDownRotation] = mNavigationBarHeight;
+
                 mNavigationBarHeightForRotation[mLandscapeRotation] =
-                mNavigationBarHeightForRotation[mSeascapeRotation] =
-                    Settings.System.getIntForUser(
-                        mContext.getContentResolver(),
-                        Settings.System.NAVIGATION_BAR_HEIGHT_LANDSCAPE,
-                        mContext.getResources()
-                                .getDimensionPixelSize(
-                                    com.android.internal.R.dimen.navigation_bar_height_landscape),
-                        UserHandle.USER_CURRENT);
+                mNavigationBarHeightForRotation[mSeascapeRotation] = mNavigationBarHeightLandscape;
 
                 // Width of the navigation bar when presented vertically along one side
                 mNavigationBarWidthForRotation[mPortraitRotation] =
                 mNavigationBarWidthForRotation[mUpsideDownRotation] =
                 mNavigationBarWidthForRotation[mLandscapeRotation] =
-                mNavigationBarWidthForRotation[mSeascapeRotation] =
-                    Settings.System.getIntForUser(
-                        mContext.getContentResolver(),
-                        Settings.System.NAVIGATION_BAR_WIDTH,
-                        mContext.getResources()
-                                .getDimensionPixelSize(
-                                    com.android.internal.R.dimen.navigation_bar_width),
-                        UserHandle.USER_CURRENT);
+                mNavigationBarWidthForRotation[mSeascapeRotation] = mNavigationBarWidth;
+            }
+
+            if (Settings.System.getIntForUser(resolver,
+                        Settings.System.EXPANDED_DESKTOP_STATE, 0,
+                        UserHandle.USER_CURRENT) == 0) {
+                mExpandedDesktopMode = 0;
+            } else {
+                mExpandedDesktopMode = mHasNavigationBar ? 1 : 2;
             }
 
             if (mSystemReady) {
@@ -2534,7 +2513,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         // it handle it, because that gives us the correct 5 second
         // timeout.
         if (keyCode == KeyEvent.KEYCODE_HOME) {
-
             // If we have released the home key, and didn't do anything else
             // while it was pressed, then it is time to go home!
             if (!down && mHomePressed) {
@@ -3103,16 +3081,18 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     }
 
     private void cancelPreloadRecentApps() {
-        try {
-            IStatusBarService statusbar = getStatusBarService();
-            if (statusbar != null) {
-                statusbar.cancelPreloadRecentApps();
-                mRecentAppsPreloaded = false;
+        if (mPreloadedRecentApps) {
+            mPreloadedRecentApps = false;
+            try {
+                IStatusBarService statusbar = getStatusBarService();
+                if (statusbar != null) {
+                    statusbar.cancelPreloadRecentApps();
+                }
+            } catch (RemoteException e) {
+                Slog.e(TAG, "RemoteException when showing recent apps", e);
+                // re-acquire status bar service next time it is needed.
+                mStatusBarService = null;
             }
-        } catch (RemoteException e) {
-            Slog.e(TAG, "RemoteException when showing recent apps", e);
-            // re-acquire status bar service next time it is needed.
-            mStatusBarService = null;
         }
     }
 

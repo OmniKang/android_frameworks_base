@@ -788,17 +788,19 @@ public abstract class BaseStatusBar extends SystemUI implements
         mSearchPanelView = (SearchPanelView) LayoutInflater.from(mContext).inflate(
                  R.layout.status_bar_search_panel, tmpRoot, false);
 
-         boolean navbarCanMove = Settings.System.getIntForUser(mContext.getContentResolver(),
-                   Settings.System.NAVIGATION_BAR_CAN_MOVE,
-                   DeviceUtils.isPhone(mContext) ? 1 : 0, UserHandle.USER_CURRENT) == 1;
+        boolean navigationBarCanMove = DeviceUtils.isPhone(mContext) ?
+                Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.NAVIGATION_BAR_CAN_MOVE, 1,
+                    UserHandle.USER_CURRENT) == 1
+                : false;
 
-         if (!isScreenPortrait() && !navbarCanMove) {
-                mSearchPanelView = (SearchPanelView) LayoutInflater.from(mContext).inflate(
-                         R.layout.status_bar_search_panel_real_landscape, tmpRoot, false);
-         } else {
-                mSearchPanelView = (SearchPanelView) LayoutInflater.from(mContext).inflate(
-                         R.layout.status_bar_search_panel, tmpRoot, false);
-         }
+        if (!isScreenPortrait() && !navigationBarCanMove) {
+            mSearchPanelView = (SearchPanelView) LayoutInflater.from(mContext).inflate(
+                    R.layout.status_bar_search_panel_real_landscape, tmpRoot, false);
+        } else {
+            mSearchPanelView = (SearchPanelView) LayoutInflater.from(mContext).inflate(
+                    R.layout.status_bar_search_panel, tmpRoot, false);
+        }
 
         mSearchPanelView.setOnTouchListener(
                  new TouchOutsideListener(MSG_CLOSE_SEARCH_PANEL, mSearchPanelView));

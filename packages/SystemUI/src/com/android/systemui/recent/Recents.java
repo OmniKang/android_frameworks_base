@@ -16,29 +16,28 @@
 
 package com.android.systemui.recent;
 
-import static com.android.internal.util.omni.DeviceUtils.IMMERSIVE_MODE_OFF;
-import static com.android.internal.util.omni.DeviceUtils.IMMERSIVE_MODE_FULL;
-import static com.android.internal.util.omni.DeviceUtils.IMMERSIVE_MODE_HIDE_ONLY_NAVBAR;
-import static com.android.internal.util.omni.DeviceUtils.IMMERSIVE_MODE_HIDE_ONLY_STATUSBAR;
-
 import android.app.ActivityOptions;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
+import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
+import android.view.IWindowManager;
 import android.view.View;
+
+import com.android.internal.util.slim.DeviceUtils;
 
 import com.android.systemui.R;
 import com.android.systemui.RecentsComponent;
@@ -54,7 +53,7 @@ public class Recents extends SystemUI implements RecentsComponent {
     }
 
     @Override
-    public void toggleRecents(Display display, int layoutDirection, View statusBarView, int immersiveModeStyle) {
+    public void toggleRecents(Display display, int layoutDirection, View statusBarView) {
         if (DEBUG) Log.d(TAG, "toggle recents panel");
         try {
             TaskDescription firstTask = RecentTasksLoader.getInstance(mContext).getFirstTask();
@@ -79,6 +78,30 @@ public class Recents extends SystemUI implements RecentsComponent {
                 }
 
             } else {
+                final IWindowManager windowManagerService = IWindowManager.Stub.asInterface(
+                        ServiceManager.getService(Context.WINDOW_SERVICE));
+
+                boolean expandedDesktopHidesNavigationBar = false;
+                try {
+                    expandedDesktopHidesNavigationBar =
+                        windowManagerService.expandedDesktopHidesNavigationBar();
+                } catch (RemoteException e) {
+                }
+
+                boolean expandedDesktopHidesStatusBar = false;
+                try {
+                    expandedDesktopHidesStatusBar =
+                        windowManagerService.expandedDesktopHidesStatusBar();
+                } catch (RemoteException e) {
+                }
+
+                int getCurrentNavigationBarSize = 0;
+                try {
+                    getCurrentNavigationBarSize =
+                        windowManagerService.getCurrentNavigationBarSize();
+                } catch (RemoteException e) {
+                }
+
                 Bitmap first = null;
                 if (firstTask.getThumbnail() instanceof BitmapDrawable) {
                     first = ((BitmapDrawable) firstTask.getThumbnail()).getBitmap();
@@ -106,12 +129,7 @@ public class Recents extends SystemUI implements RecentsComponent {
 
 
                 DisplayMetrics dm = new DisplayMetrics();
-                if (immersiveModeStyle == IMMERSIVE_MODE_FULL ||
-                        immersiveModeStyle == IMMERSIVE_MODE_HIDE_ONLY_NAVBAR) {
-                    display.getRealMetrics(dm);
-                } else {
-                    display.getMetrics(dm);
-                }
+                display.getMetrics(dm);
                 // calculate it here, but consider moving it elsewhere
                 // first, determine which orientation you're in.
                 final Configuration config = res.getConfiguration();
@@ -142,8 +160,16 @@ public class Recents extends SystemUI implements RecentsComponent {
                         x = dm.widthPixels - x - res.getDimensionPixelSize(
                                 R.dimen.status_bar_recents_thumbnail_width);
                     }
-
+                    if (expandedDesktopHidesNavigationBar) {
+                        y += getCurrentNavigationBarSize;
+                    }
                 } else { // if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    boolean navigationBarCanMove = DeviceUtils.isPhone(mContext) ?
+                            Settings.System.getIntForUser(mContext.getContentResolver(),
+                                Settings.System.NAVIGATION_BAR_CAN_MOVE, 1,
+                                UserHandle.USER_CURRENT) == 1
+                            : false;
+
                     float thumbTopMargin = res.getDimensionPixelSize(
                             R.dimen.status_bar_recents_thumbnail_top_margin);
                     float thumbBgPadding = res.getDimensionPixelSize(
@@ -165,12 +191,9 @@ public class Recents extends SystemUI implements RecentsComponent {
                     float statusBarHeight = res.getDimensionPixelSize(
                             com.android.internal.R.dimen.status_bar_height);
                     float recentsItemTopPadding = statusBarHeight;
-
-                    if (immersiveModeStyle == IMMERSIVE_MODE_FULL ||
-                            immersiveModeStyle == IMMERSIVE_MODE_HIDE_ONLY_STATUSBAR) {
+                    if (expandedDesktopHidesStatusBar) {
                         statusBarHeight = 0;
                     }
-
                     float height = thumbTopMargin
                             + thumbHeight
                             + 2 * thumbBgPadding + textPadding + labelTextHeight
@@ -185,6 +208,13 @@ public class Recents extends SystemUI implements RecentsComponent {
                             - recentsScrollViewRightPadding);
                     y = (int) ((dm.heightPixels - statusBarHeight - height) / 2f + thumbTopMargin
                             + recentsItemTopPadding + thumbBgPadding + statusBarHeight);
+                    if (expandedDesktopHidesNavigationBar) {
+                        if (navigationBarCanMove) {
+                            x += getCurrentNavigationBarSize;
+                        } else {
+                            y += (int) (getCurrentNavigationBarSize / 2f);
+                        }
+                    }
                 }
 
                 ActivityOptions opts = ActivityOptions.makeThumbnailScaleDownAnimation(
