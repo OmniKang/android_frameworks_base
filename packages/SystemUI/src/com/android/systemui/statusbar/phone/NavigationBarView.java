@@ -93,9 +93,8 @@ public class NavigationBarView extends LinearLayout {
     int mDisabledFlags = 0;
     int mNavigationIconHints = 0;
 
-    private Drawable mBackIcon, mBackLandIcon, mBackAltIcon, mBackAltLandIcon;
-    private Drawable mRecentIcon;
-    private Drawable mRecentLandIcon;
+    private Drawable mBackIcon, mBackLandIcon, mBackAltIcon, mBackAltLandIcon,
+            mRecentIcon, mRecentLandIcon, mRecentAltIcon, mRecentAltLandIcon;
 
     private DelegateViewHelper mDelegateHelper;
     private DeadZone mDeadZone;
@@ -364,6 +363,8 @@ public class NavigationBarView extends LinearLayout {
         mBackAltLandIcon = res.getDrawable(R.drawable.ic_sysbar_back_ime);
         mRecentIcon = res.getDrawable(R.drawable.ic_sysbar_recent);
         mRecentLandIcon = res.getDrawable(R.drawable.ic_sysbar_recent_land);
+        mRecentAltIcon = res.getDrawable(R.drawable.ic_sysbar_recent_clear);
+        mRecentAltLandIcon = res.getDrawable(R.drawable.ic_sysbar_recent_clear_land);
     }
 
     protected void updateResources() {
