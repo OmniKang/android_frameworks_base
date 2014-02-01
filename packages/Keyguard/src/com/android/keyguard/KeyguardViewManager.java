@@ -108,6 +108,10 @@ public class KeyguardViewManager {
     private Bitmap mBlurredImage = null;
     private int mLastRotation = 0;
 
+    private NotificationHostView mNotificationView;
+    private NotificationViewManager mNotificationViewManager;
+    private boolean mLockscreenNotifications = false;
+
     private KeyguardUpdateMonitorCallback mBackgroundChanger = new KeyguardUpdateMonitorCallback() {
         @Override
         public void onSetBackground(Bitmap bmp) {
@@ -165,7 +169,6 @@ public class KeyguardViewManager {
      * @param callback Used to notify of changes.
      * @param lockPatternUtils
      */
-
     public KeyguardViewManager(Context context, ViewManager viewManager,
             KeyguardViewMediator.ViewMediatorCallback callback,
             LockPatternUtils lockPatternUtils) {
@@ -507,7 +510,8 @@ public class KeyguardViewManager {
                 options.getBoolean(IS_SWITCHING_USER));
 
         if (mLockscreenNotifications) {
-            mNotificationView = (NotificationHostView)mKeyguardView.findViewById(R.id.notification_host_view);
+            mNotificationView = (NotificationHostView)
+                    mKeyguardView.findViewById(R.id.notification_host_view);
             mNotificationViewManager.setHostView(mNotificationView);
             mNotificationViewManager.onScreenTurnedOff();
             mNotificationView.addNotifications();

@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.util.slim.QuietHoursHelper;
 
 public class NotificationViewManager {
@@ -65,6 +66,7 @@ public class NotificationViewManager {
     private PowerManager mPowerManager;
     private NotificationHostView mHostView;
 
+    private static LockPatternUtils mLockPatternUtils;
     private ProfileManager mProfileManager;
 
     private Set<String> mExcludedApps = new HashSet<String>();
@@ -73,8 +75,8 @@ public class NotificationViewManager {
 
     class Configuration extends ContentObserver {
         //User configurable values, set defaults here
-        public boolean showAlways = true;
-        public boolean pocketMode = true;
+        public boolean showAlways = false;
+        public boolean pocketMode = false;
         public boolean hideLowPriority = false;
         public boolean hideNonClearable = false;
         public boolean dismissAll = true;
@@ -122,6 +124,8 @@ public class NotificationViewManager {
                     Settings.System.LOCKSCREEN_NOTIFICATIONS_EXCLUDED_APPS), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.LOCKSCREEN_NOTIFICATIONS_COLOR), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.LOCKSCREEN_NOTIFICATIONS_TYPE), false, this);
         }
 
         @Override
@@ -140,14 +144,12 @@ public class NotificationViewManager {
                     Settings.System.LOCKSCREEN_NOTIFICATIONS_HIDE_NON_CLEARABLE, hideNonClearable ? 1 : 0) == 1;
             dismissAll = Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.LOCKSCREEN_NOTIFICATIONS_DISMISS_ALL, dismissAll ? 1 : 0) == 1;
-            privacyMode = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.LOCKSCREEN_NOTIFICATIONS_PRIVACY_MODE, privacyMode ? 1 : 0) == 1;
             expandedView = Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.LOCKSCREEN_NOTIFICATIONS_EXPANDED_VIEW, expandedView ? 1 : 0) == 1
-                    && !privacyMode;
+                    && !privacyModeEnabled();
             forceExpandedView = Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.LOCKSCREEN_NOTIFICATIONS_FORCE_EXPANDED_VIEW, forceExpandedView ? 1 : 0) == 1
-                    && !privacyMode;
+                    && !privacyModeEnabled();
             wakeOnNotification = Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.LOCKSCREEN_NOTIFICATIONS_WAKE_ON_NOTIFICATION, wakeOnNotification ? 1 : 0) == 1;
             notificationsHeight = Settings.System.getInt(mContext.getContentResolver(),
@@ -165,12 +167,21 @@ public class NotificationViewManager {
         }
     }
 
+    public static final boolean privacyModeEnabled() {
+        if (mLockPatternUtils.isSecure()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private class ProximityListener implements SensorEventListener {
         public void onSensorChanged(SensorEvent event) {
             if (event.sensor.equals(ProximitySensor)) {
                 if (!mIsScreenOn) {
                     if (event.values[0] >= ProximitySensor.getMaximumRange()) {
-                        if (config.pocketMode && mTimeCovered != 0 && (config.showAlways || mHostView.getNotificationCount() > 0)
+                        if (config.pocketMode && mTimeCovered != 0 && (config.showAlways
+                                || mHostView.getNotificationCount() > 0)
                                 && System.currentTimeMillis() - mTimeCovered > MIN_TIME_COVERED
                                 && !QuietHoursHelper.inQuietHours(mContext, Settings.System.QUIET_HOURS_DIM)
                                 && !isDisabledByProfiles()) {
@@ -228,6 +239,7 @@ public class NotificationViewManager {
 
         mPowerManager = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
         mProfileManager = (ProfileManager) context.getSystemService(Context.PROFILE_SERVICE);
+        mLockPatternUtils = new LockPatternUtils(mContext);
 
         config = new Configuration(new Handler());
         config.observe();
@@ -245,10 +257,12 @@ public class NotificationViewManager {
 
     private void registerProximityListener() {
         if (ProximityListener == null && (config.pocketMode || config.wakeOnNotification)) {
-            SensorManager sensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
+            SensorManager sensorManager = (SensorManager)
+                    mContext.getSystemService(Context.SENSOR_SERVICE);
             ProximityListener = new ProximityListener();
             ProximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-            sensorManager.registerListener(ProximityListener, ProximitySensor, SensorManager.SENSOR_DELAY_UI);
+            sensorManager.registerListener(ProximityListener,
+                    ProximitySensor, SensorManager.SENSOR_DELAY_UI);
         }
     }
 
@@ -257,7 +271,8 @@ public class NotificationViewManager {
             NotificationListener = new NotificationListenerWrapper();
             ComponentName cn = new ComponentName(mContext, getClass().getName());
             try {
-                mNotificationManager.registerListener(NotificationListener, cn, UserHandle.USER_ALL);
+                mNotificationManager.registerListener(
+                        NotificationListener, cn, UserHandle.USER_ALL);
             } catch (RemoteException ex) {
                 Log.e(TAG, "Could not register notification listener: " + ex.toString());
             }
@@ -266,7 +281,8 @@ public class NotificationViewManager {
 
     private void unregisterProximityListener() {
         if (ProximityListener != null) {
-            SensorManager sensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
+            SensorManager sensorManager = (SensorManager)
+                    mContext.getSystemService(Context.SENSOR_SERVICE);
             sensorManager.unregisterListener(ProximityListener);
             ProximityListener = null;
         }
@@ -333,5 +349,4 @@ public class NotificationViewManager {
         String[] appsToExclude = excludedApps.split("\\|");
         mExcludedApps = new HashSet<String>(Arrays.asList(appsToExclude));
     }
-
 }
