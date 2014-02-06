@@ -301,7 +301,9 @@ class QuickSettings {
             @Override
             protected void onPostExecute(Pair<String, Drawable> result) {
                 super.onPostExecute(result);
-                mModel.setUserTileInfo(result.first, result.second);
+                if (mModel != null) {
+                    mModel.setUserTileInfo(result.first, result.second);
+                }
                 mUserInfoTask = null;
             }
         };
