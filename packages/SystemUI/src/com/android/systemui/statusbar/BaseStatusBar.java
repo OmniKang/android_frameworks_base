@@ -222,11 +222,7 @@ public abstract class BaseStatusBar extends SystemUI implements
         return mDeviceProvisioned;
     }
 
-<<<<<<< HEAD
-    private ContentObserver mProvisioningObserver = new ContentObserver(new Handler()) {
-=======
     private ContentObserver mSettingsObserver = new ContentObserver(mHandler) {
->>>>>>> head
         @Override
         public void onChange(boolean selfChange) {
             final boolean provisioned = 0 != Settings.Global.getInt(
