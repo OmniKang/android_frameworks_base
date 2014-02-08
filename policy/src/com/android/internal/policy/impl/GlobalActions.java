@@ -521,6 +521,116 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 });
         }
 
+        for (final ButtonConfig config : powerMenuConfig) {
+            // power off
+            if (config.getClickAction().equals(PolicyConstants.ACTION_POWER_OFF)) {
+                mItems.add(
+                    new SinglePressAction(PolicyHelper.getPowerMenuIconImage(mContext,
+                            config.getClickAction(), config.getIcon(), true),
+                            config.getClickActionDescription()) {
+
+                        public void onPress() {
+                            // shutdown by making sure radio and power are handled accordingly.
+                            mWindowManagerFuncs.shutdown(true);
+                        }
+
+                        public boolean showDuringKeyguard() {
+                            return true;
+                        }
+
+                        public boolean showBeforeProvisioning() {
+                            return true;
+                        }
+                    });
+            // reboot
+            } else if (config.getClickAction().equals(PolicyConstants.ACTION_REBOOT)) {
+                mItems.add(
+                    new SinglePressAction(PolicyHelper.getPowerMenuIconImage(mContext,
+                            config.getClickAction(), config.getIcon(), true),
+                            config.getClickActionDescription()) {
+                        public void onPress() {
+                            mWindowManagerFuncs.reboot();
+                        }
+
+                        public boolean onLongPress() {
+                            mWindowManagerFuncs.rebootSafeMode(true);
+                            return true;
+                        }
+
+                        public boolean showDuringKeyguard() {
+                            return true;
+                        }
+
+                        public boolean showBeforeProvisioning() {
+                            return true;
+                        }
+                    });
+            // screenshot
+            } else if (config.getClickAction().equals(PolicyConstants.ACTION_SCREENSHOT)) {
+                mItems.add(
+                    new SinglePressAction(PolicyHelper.getPowerMenuIconImage(mContext,
+                            config.getClickAction(), config.getIcon(), true),
+                            config.getClickActionDescription()) {
+                        public void onPress() {
+                            SlimActions.processAction(
+                                mContext, config.getClickAction(), false);
+                        }
+
+                        public boolean showDuringKeyguard() {
+                            return true;
+                        }
+                        public boolean showBeforeProvisioning() {
+                            return true;
+                        }
+                    });
+            // airplane mode
+            } else if (config.getClickAction().equals(PolicyConstants.ACTION_AIRPLANE)) {
+                constructAirPlaneModeToggle(PolicyHelper.getPowerMenuIconImage(mContext,
+                            config.getClickAction(), config.getIcon(), true),
+                            config.getClickActionDescription());
+                mItems.add(mAirplaneModeOn);
+            // expanded desktop mode
+            } else if (config.getClickAction().equals(PolicyConstants.ACTION_EXPANDED_DESKTOP)) {
+                constructExpandedDesktopToggle(PolicyHelper.getPowerMenuIconImage(mContext,
+                            config.getClickAction(), config.getIcon(), true),
+                            config.getClickActionDescription());
+                mItems.add(mExpandDesktopModeOn);
+            // Pie controls
+            } else if (config.getClickAction().equals(PolicyConstants.ACTION_PIE)) {
+                constructPieToggle(PolicyHelper.getPowerMenuIconImage(mContext,
+                            config.getClickAction(), config.getIcon(), true),
+                            config.getClickActionDescription());
+                mItems.add(mPieModeOn);
+            // Navigation bar
+            } else if (config.getClickAction().equals(PolicyConstants.ACTION_NAVBAR)) {
+                constructNavBarToggle(PolicyHelper.getPowerMenuIconImage(mContext,
+                            config.getClickAction(), config.getIcon(), true),
+                            config.getClickActionDescription());
+                mItems.add(mNavBarModeOn);
+            // silent mode
+            } else if ((config.getClickAction().equals(PolicyConstants.ACTION_SOUND)) && (mShowSilentToggle)) {
+                mItems.add(mSilentModeAction);
+            // must be a custom app or action shorcut
+            } else if (config.getClickAction() != null) {
+                mItems.add(
+                    new SinglePressAction(PolicyHelper.getPowerMenuIconImage(mContext,
+                            config.getClickAction(), config.getIcon(), true),
+                            config.getClickActionDescription()) {
+                        public void onPress() {
+                            SlimActions.processAction(
+                                mContext, config.getClickAction(), false);
+                        }
+
+                        public boolean showDuringKeyguard() {
+                            return true;
+                        }
+                        public boolean showBeforeProvisioning() {
+                            return true;
+                        }
+                    });
+            }
+        }
+
         // last: silent mode
         if (mShowSilentToggle && Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.SOUND_TOGGLES_IN_POWER_MENU, 1) != 0) {
