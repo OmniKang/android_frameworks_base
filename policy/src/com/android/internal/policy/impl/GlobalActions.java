@@ -30,6 +30,7 @@ import android.app.Profile;
 import android.app.ProfileManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -38,6 +39,7 @@ import android.database.ContentObserver;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -105,17 +107,22 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private ArrayList<Action> mItems;
     private GlobalActionsDialog mDialog;
+    private Handler mObservHandler = new Handler();
 
     private Action mSilentModeAction;
     private ToggleAction mAirplaneModeOn;
     private ToggleAction mMobileDataOn;
     private Profile mChosenProfile;
+    private ToggleAction mPieModeOn;
+    private ToggleAction mNavBarModeOn;
 
     private MyAdapter mAdapter;
 
     private boolean mKeyguardShowing = false;
     private boolean mDeviceProvisioned = false;
     private ToggleAction.State mAirplaneState = ToggleAction.State.Off;
+    private ToggleAction.State mPieState = ToggleAction.State.Off;
+    private ToggleAction.State mNavBarState = ToggleAction.State.Off;
     private boolean mIsWaitingForEcmExit = false;
     private boolean mHasTelephony;
     private boolean mHasVibrator;
@@ -725,6 +732,54 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         }
     }
 
+    private void constructPieToggle(Drawable icon, String description) {
+        mPieModeOn = new ToggleAction(
+                icon,
+                icon,
+                description,
+                R.string.global_actions_pie_mode_on_status,
+                R.string.global_actions_pie_mode_off_status) {
+
+            void onToggle(boolean on) {
+                SlimActions.processAction(
+                    mContext, PolicyConstants.ACTION_PIE, false);
+            }
+
+            public boolean showDuringKeyguard() {
+                return true;
+            }
+
+            public boolean showBeforeProvisioning() {
+                return false;
+            }
+        };
+        onPieModeChanged();
+    }
+
+    private void constructNavBarToggle(Drawable icon, String description) {
+        mNavBarModeOn = new ToggleAction(
+                icon,
+                icon,
+                description,
+                R.string.global_actions_nav_bar_mode_on_status,
+                R.string.global_actions_nav_bar_mode_off_status) {
+
+            void onToggle(boolean on) {
+                SlimActions.processAction(
+                    mContext, PolicyConstants.ACTION_NAVBAR, false);
+            }
+
+            public boolean showDuringKeyguard() {
+                return true;
+            }
+
+            public boolean showBeforeProvisioning() {
+                return false;
+            }
+        };
+        onNavBarModeChanged();
+    }
+
     private UserInfo getCurrentUser() {
         try {
             return ActivityManagerNative.getDefault().getCurrentUser();
@@ -775,10 +830,25 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private void prepareDialog() {
         refreshSilentMode();
-        mAirplaneModeOn.updateState(mAirplaneState);
-        mMobileDataOn.updateState(mConnectivityManager.getMobileDataEnabled() ? ToggleAction.State.On : ToggleAction.State.Off);
+        if (mAirplaneModeOn != null) {
+            mAirplaneModeOn.updateState(mAirplaneState);
+        }
+        if (mPieModeOn != null) {
+            mPieModeOn.updateState(mPieState);
+        }
+        if (mNavBarModeOn != null) {
+            mNavBarModeOn.updateState(mNavBarState);
+        }
+
+        // Start observing setting changes during
+        // dialog shows up
+        mSettingsObserver.observe();
+
         mAdapter.notifyDataSetChanged();
         mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
+
+        mDialog.setTitle(R.string.global_actions);
+
         if (mShowSilentToggle) {
             IntentFilter filter = new IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION);
             mContext.registerReceiver(mRingerModeReceiver, filter);
@@ -804,6 +874,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 Log.w(TAG, ie);
             }
         }
+        mContext.getContentResolver().unregisterContentObserver(mSettingsObserver);
     }
 
     /** {@inheritDoc} */
@@ -1266,6 +1337,37 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         }
     };
 
+    private SettingsObserver mSettingsObserver = new SettingsObserver(new Handler());
+    private final class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.PIE_CONTROLS), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.NAVIGATION_BAR_SHOW), false, this,
+                    UserHandle.USER_ALL);
+
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            super.onChange(selfChange, uri);
+            if (uri.equals(Settings.System.getUriFor(
+                    Settings.System.PIE_CONTROLS))) {
+                onPieModeChanged();
+            } else if (uri.equals(Settings.System.getUriFor(
+                Settings.System.NAVIGATION_BAR_SHOW))) {
+                onNavBarModeChanged();
+            }
+            mAdapter.notifyDataSetChanged();
+        }
+    }
+
     PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
         @Override
         public void onServiceStateChanged(ServiceState serviceState) {
@@ -1326,7 +1428,33 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 Settings.Global.AIRPLANE_MODE_ON,
                 0) == 1;
         mAirplaneState = airplaneModeOn ? ToggleAction.State.On : ToggleAction.State.Off;
-        mAirplaneModeOn.updateState(mAirplaneState);
+        if (mAirplaneModeOn != null) {
+            mAirplaneModeOn.updateState(mAirplaneState);
+        }
+    }
+
+    private void onPieModeChanged() {
+        boolean pieModeOn = Settings.System.getIntForUser(
+                mContext.getContentResolver(),
+                Settings.System.PIE_CONTROLS,
+                0, UserHandle.USER_CURRENT) == 1;
+        mPieState = pieModeOn ? ToggleAction.State.On : ToggleAction.State.Off;
+        if (mPieModeOn != null) {
+            mPieModeOn.updateState(mPieState);
+        }
+    }
+
+    private void onNavBarModeChanged() {
+        boolean defaultValue = mContext.getResources().getBoolean(
+                com.android.internal.R.bool.config_showNavigationBar);
+        boolean navBarModeOn = Settings.System.getIntForUser(
+                mContext.getContentResolver(),
+                Settings.System.NAVIGATION_BAR_SHOW,
+                defaultValue ? 1 : 0, UserHandle.USER_CURRENT) == 1;
+        mNavBarState = navBarModeOn ? ToggleAction.State.On : ToggleAction.State.Off;
+        if (mNavBarModeOn != null) {
+            mNavBarModeOn.updateState(mNavBarState);
+        }
     }
 
     /**
