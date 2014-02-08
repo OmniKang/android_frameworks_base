@@ -230,6 +230,7 @@ public class ViewConfiguration {
 
     private boolean sHasPermanentMenuKey;
     private boolean sHasPermanentMenuKeySet;
+    private boolean sHasHwMenuKey;
 
     static final SparseArray<ViewConfiguration> sConfigurations =
             new SparseArray<ViewConfiguration>(2);
@@ -306,6 +307,12 @@ public class ViewConfiguration {
             } catch (RemoteException ex) {
                 sHasPermanentMenuKey = false;
             }
+
+            boolean hasNavBar = res.getBoolean(com.android.internal.R.bool.config_showNavigationBar);
+            int deviceKeys = res.getInteger(com.android.internal.R.integer.config_deviceHardwareKeys);
+            // TODO we should have those in some central place
+            final int KEY_MASK_MENU = 0x04;
+            sHasHwMenuKey = !hasNavBar && ((deviceKeys & KEY_MASK_MENU) != 0);
         }
 
         mFadingMarqueeEnabled = res.getBoolean(
@@ -699,13 +706,18 @@ public class ViewConfiguration {
      * @return true if a permanent menu key is present, false otherwise.
      */
     public boolean hasPermanentMenuKey() {
-        boolean emulateMenuKey = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.EMULATE_MENU_KEY, 0) == 1;
+        boolean forceShowMenu = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.FORCE_SHOW_OVERFLOW_MENU, sHasHwMenuKey ? 0 : 1) == 1;
 
-        if(!sHasPermanentMenuKey && emulateMenuKey){
+        boolean emulateHwMenuKey = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.EMULATE_HW_MENU_KEY, 0) == 1;
+
+        if (forceShowMenu && sHasPermanentMenuKey){
+            return false;
+        }
+        if (emulateHwMenuKey){
             return true;
         }
-
         return sHasPermanentMenuKey;
     }
 

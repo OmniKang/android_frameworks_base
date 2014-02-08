@@ -3183,6 +3183,12 @@ public final class Settings {
         public static final String CLEAR_RECENTS_BUTTON_LOCATION = "clear_recents_button_location";
 
         /**
+         * Alternative recent apps integration using OmniSwitch
+         * @hide
+         */
+        public static final String RECENTS_USE_OMNISWITCH = "recents_use_omniswitch";
+
+        /**
          * Immersive mode global actions switch
          * 0 = no
          * 1 = yes
@@ -3767,10 +3773,18 @@ public final class Settings {
         public static final String SOFT_BACK_KILL_APP_ENABLE = "soft_back_kill_app_enable";
 
         /**
-         * Emulate pressing KEYCODE_MENU in the navbar
+         * Emulate existance of a menu key on devices that have only soft keys
+         * Using a soft menu key will behave like if a hw menu is used
          * @hide
          */
-        public static final String EMULATE_MENU_KEY = "emulate_menu_key";
+        public static final String EMULATE_HW_MENU_KEY = "emulate_hw_menu_key";
+
+        /**
+         * Force show overflow (3dot) menu for devices that have a hw menu key
+         * Can be used for custom button assignment and force soft key use-cases
+         * @hide
+         */
+        public static final String FORCE_SHOW_OVERFLOW_MENU = "force_show_overflow_menu";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
