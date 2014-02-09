@@ -1150,7 +1150,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     }
 
     boolean deviceSupportsGSMLTE() {
-        return (mTM.getLteOnGsmMode() != 0);
+        return (mTM.getLteOnGsmMode() != 0) || deviceSupportsCDMALTE();
     }
 
     // Mobile Network
