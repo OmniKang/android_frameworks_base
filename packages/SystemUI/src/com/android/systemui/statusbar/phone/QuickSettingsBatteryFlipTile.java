@@ -114,6 +114,12 @@ class QuickSettingsBatteryFlipTile extends QuickSettingsTileView {
         super.switchToRibbonMode();
     }
 
+    @Override
+    public void callOnColumnsChange() {
+        mBack.callOnColumnsChange();
+        mFront.callOnColumnsChange();
+    }
+
     public void setFrontOnClickListener(View.OnClickListener listener) {
         mFront.setOnClickListener(listener);
     }

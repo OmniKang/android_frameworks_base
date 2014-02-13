@@ -197,7 +197,9 @@ public class QuickSettingsTileFlip3d extends GestureDetector.SimpleOnGestureList
         mDetector.onTouchEvent(event);
         int action = event.getAction();
         if (action == MotionEvent.ACTION_CANCEL) {
-            rotateReset();
+            if (mFlingCancelClamp) {
+                rotateReset();
+            }
             dispatchEventToActive(event);
         } else if (action == MotionEvent.ACTION_UP) {
             if (!mFlingCancelClamp) {

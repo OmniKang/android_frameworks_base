@@ -116,6 +116,12 @@ class QuickSettingsBasicBackBatteryTile extends QuickSettingsTileView {
         super.switchToRibbonMode();
     }
 
+    @Override
+    public void callOnColumnsChange() {
+        mLabelView.invalidate();
+        mFunctionView.invalidate();
+    }
+
     public void setLabel(CharSequence text) {
         mLabelView.setText(text);
     }

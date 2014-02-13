@@ -35,6 +35,8 @@ import android.media.AudioManager;
 import android.media.MediaRouter;
 import android.media.MediaRouter.RouteInfo;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.TrafficStats;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiInfo;
 import android.os.BatteryManager;
@@ -54,8 +56,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.InputMethodSubtype;
 
 import com.android.internal.telephony.Phone;
-import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.util.omni.OmniTorchConstants;
+import com.android.internal.util.omni.DeviceUtils;
 import com.android.systemui.R;
 import com.android.systemui.settings.BrightnessController.BrightnessStateChangeCallback;
 import com.android.systemui.settings.CurrentUserTracker;
@@ -84,7 +86,6 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         int iconId;
         String label;
         boolean enabled = false;
-        int mode;
     }
     static class BatteryState extends State {
         int batteryLevel;
@@ -441,6 +442,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     private ConnectivityManager mCM;
     private TelephonyManager mTM;
     private WifiManager mWifiManager;
+    private PhoneStatusBar mStatusBarService;
 
     private boolean mUsbTethered = false;
     private boolean mUsbConnected = false;
@@ -474,7 +476,6 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     private final MediaRouter mMediaRouter;
     private final RemoteDisplayRouteCallback mRemoteDisplayRouteCallback;
 
-    private final boolean mHasMobileData;
     private long mLastClickTime = 0;
     private boolean mRibbon = false;
 
@@ -606,7 +607,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         mContext = context;
         mRibbon = ribbon;
         mHandler = new Handler();
-        mUserTracker = new CurrentUserTracker(mContext) {
+        mUserTracker = new CurrentUserTracker(context) {
             @Override
             public void onUserSwitched(int newUserId) {
                 mBrightnessObserver.startObserving();
@@ -648,8 +649,6 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         mRemoteDisplayRouteCallback = new RemoteDisplayRouteCallback();
 
         mCM = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        mHasMobileData = mCM.isNetworkSupported(ConnectivityManager.TYPE_MOBILE);
-
         mTM = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
@@ -683,15 +682,27 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         }
 
         mRingers = new ArrayList<Ringer>();
-        mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
+        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 
         IntentFilter batteryFilter = new IntentFilter();
         batteryFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
         context.registerReceiver(mBatteryReceiver, batteryFilter);
     }
 
-    void updateResources() {
+    public void setService(PhoneStatusBar phoneStatusBar) {
+        mStatusBarService = phoneStatusBar;
+    }
+
+    public PhoneStatusBar getService() {
+        return mStatusBarService;
+    }
+
+    private void collapsePanels() {
+        getService().animateCollapsePanels();
+    }
+
+    public void updateResources() {
         refreshSettingsTile();
         refreshBatteryTile();
         refreshBatteryBackTile();
@@ -787,23 +798,25 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     }
 
     void onUsbChanged() {
-        updateState();
-        Resources r = mContext.getResources();
-        if (mUsbConnected && !mMassStorageActive) {
-            if (mUsbTethered) {
-                mUsbModeState.iconId = R.drawable.ic_qs_usb_tether_on;
-                mUsbModeState.label = r.getString(R.string.quick_settings_usb_tether_on_label);
+        if (DeviceUtils.deviceSupportsUsbTether(mContext)) {
+            updateState();
+            Resources r = mContext.getResources();
+            if (mUsbConnected && !mMassStorageActive) {
+                if (mUsbTethered) {
+                    mUsbModeState.iconId = R.drawable.ic_qs_usb_tether_on;
+                    mUsbModeState.label = r.getString(R.string.quick_settings_usb_tether_on_label);
+                } else {
+                    mUsbModeState.iconId = R.drawable.ic_qs_usb_tether_connected;
+                    mUsbModeState.label = r.getString(R.string.quick_settings_usb_tether_connected_label);
+                }
+                mUsbModeState.enabled = true;
             } else {
-                mUsbModeState.iconId = R.drawable.ic_qs_usb_tether_connected;
-                mUsbModeState.label = r.getString(R.string.quick_settings_usb_tether_connected_label);
+                mUsbModeState.iconId = R.drawable.ic_qs_usb_tether_off;
+                mUsbModeState.label = r.getString(R.string.quick_settings_usb_tether_off_label);
+                mUsbModeState.enabled = false;
             }
-            mUsbModeState.enabled = true;
-        } else {
-            mUsbModeState.iconId = R.drawable.ic_qs_usb_tether_off;
-            mUsbModeState.label = r.getString(R.string.quick_settings_usb_tether_off_label);
-            mUsbModeState.enabled = false;
+            mUsbModeCallback.refreshView(mUsbModeTile, mUsbModeState);
         }
-        mUsbModeCallback.refreshView(mUsbModeTile, mUsbModeState);
     }
 
     // Torch Mode
@@ -821,16 +834,18 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     }
 
     void onTorchChanged() {
-        Resources r = mContext.getResources();
-        if (mTorchActive) {
-            mTorchState.iconId = R.drawable.ic_qs_torch_on;
-            mTorchState.label = r.getString(R.string.quick_settings_torch);
-        } else {
-            mTorchState.iconId = R.drawable.ic_qs_torch_off;
-            mTorchState.label = r.getString(R.string.quick_settings_torch_off);
+        if (DeviceUtils.deviceSupportsTorch(mContext)) {
+            Resources r = mContext.getResources();
+            if (mTorchActive) {
+                mTorchState.iconId = R.drawable.ic_qs_torch_on;
+                mTorchState.label = r.getString(R.string.quick_settings_torch);
+            } else {
+                mTorchState.iconId = R.drawable.ic_qs_torch_off;
+                mTorchState.label = r.getString(R.string.quick_settings_torch_off);
+            }
+            mTorchState.enabled = mTorchActive;
+            mTorchCallback.refreshView(mTorchTile, mTorchState);
         }
-        mTorchState.enabled = mTorchActive;
-        mTorchCallback.refreshView(mTorchTile, mTorchState);
     }
 
     // Airplane Mode
@@ -921,7 +936,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         mWifiBackTile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mCM.getTetherableWifiRegexs().length != 0) {
+                if (DeviceUtils.deviceSupportsWifiAp(mContext)) {
                     int state = mWifiManager.getWifiApState();
                     switch (state) {
                          case WifiManager.WIFI_AP_STATE_ENABLING:
@@ -1096,10 +1111,6 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         return ipString;
     }
 
-    boolean deviceHasMobileData() {
-        return mHasMobileData;
-    }
-
     // RSSI
     void addRSSITile(QuickSettingsTileView view, RefreshCallback cb) {
         mRSSITile = view;
@@ -1113,7 +1124,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
             boolean enabled, int mobileSignalIconId, String signalContentDescription,
             int dataTypeIconId, boolean activityIn, boolean activityOut,
             String dataContentDescription,String enabledDesc) {
-        if (deviceHasMobileData()) {
+        if (DeviceUtils.deviceSupportsMobileData(mContext)) {
             // TODO: If view is in awaiting state, disable
             Resources r = mContext.getResources();
             mRSSIState.signalIconId = enabled && (mobileSignalIconId > 0)
@@ -1122,12 +1133,12 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
             mRSSIState.signalContentDescription = enabled && (mobileSignalIconId > 0)
                     ? signalContentDescription
                     : r.getString(R.string.accessibility_no_signal);
-            mRSSIState.dataTypeIconId = enabled && (dataTypeIconId > 0) && !mWifiState.enabled
+            mRSSIState.dataTypeIconId = enabled && (dataTypeIconId > 0) && !mWifiState.connected
                     ? dataTypeIconId
                     : 0;
             mRSSIState.activityIn = enabled && activityIn;
             mRSSIState.activityOut = enabled && activityOut;
-            mRSSIState.dataContentDescription = enabled && (dataTypeIconId > 0) && !mWifiState.enabled
+            mRSSIState.dataContentDescription = enabled && (dataTypeIconId > 0) && !mWifiState.connected
                     ? dataContentDescription
                     : r.getString(R.string.accessibility_no_data);
             mRSSIState.label = enabled
@@ -1143,14 +1154,6 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
             return;
         }
         mRSSICallback.refreshView(mRSSITile, mRSSIState);
-    }
-
-    boolean deviceSupportsCDMALTE() {
-        return (mTM.getLteOnCdmaMode() == PhoneConstants.LTE_ON_CDMA_TRUE);
-    }
-
-    boolean deviceSupportsGSMLTE() {
-        return (mTM.getLteOnGsmMode() != 0) || deviceSupportsCDMALTE();
     }
 
     // Mobile Network
@@ -1172,7 +1175,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     }
 
     void onMobileNetworkChanged() {
-        if (deviceHasMobileData()) {
+        if (DeviceUtils.deviceSupportsMobileData(mContext)) {
             mMobileNetworkState.label = getNetworkType(mContext.getResources());
             mMobileNetworkState.iconId = getNetworkTypeIcon();
             mMobileNetworkState.enabled = true;
@@ -1189,9 +1192,9 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
             case Phone.NT_MODE_LTE_GSM_WCDMA:
             case Phone.NT_MODE_LTE_ONLY:
             case Phone.NT_MODE_LTE_WCDMA:
-                if (deviceSupportsGSMLTE()) {
+                if (DeviceUtils.deviceSupportsLteGsm(mContext)) {
                     mTM.toggleMobileNetwork(Phone.NT_MODE_GSM_ONLY);
-                } else if (deviceSupportsCDMALTE()) {
+                } else if (DeviceUtils.deviceSupportsLteCdma(mContext)) {
                     mTM.toggleMobileNetwork(Phone.NT_MODE_CDMA);
                 }
                 break;
@@ -1204,7 +1207,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
                 mTM.toggleMobileNetwork(Phone.NT_MODE_CDMA);
                 break;
             case Phone.NT_MODE_CDMA:
-                if (deviceSupportsCDMALTE()) {
+                if (DeviceUtils.deviceSupportsLteCdma(mContext)) {
                     if (usesQcLte) {
                         mTM.toggleMobileNetwork(Phone.NT_MODE_GLOBAL);
                     } else {
@@ -1224,7 +1227,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
                 mTM.toggleMobileNetwork(Phone.NT_MODE_WCDMA_ONLY);
                 break;
             case Phone.NT_MODE_WCDMA_PREF:
-                if (deviceSupportsGSMLTE()) {
+                if (DeviceUtils.deviceSupportsLteGsm(mContext)) {
                     if (usesQcLte) {
                         mTM.toggleMobileNetwork(Phone.NT_MODE_GLOBAL);
                     } else {
@@ -1237,8 +1240,17 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         }
     }
 
+    private boolean isWifiConnected() {
+        NetworkInfo network = (mCM != null) ? mCM.getNetworkInfo(ConnectivityManager.TYPE_WIFI) : null;
+        return network != null && network.isConnected();
+    }
+
+    public boolean isMobileDataEnabled() {
+        return (mCM != null) ? mCM.getMobileDataEnabled() : false;
+    }
+
     private String getNetworkType(Resources r) {
-        boolean isEnabled = mCM.getMobileDataEnabled();
+        boolean isEnabled = isMobileDataEnabled();
 
         int state = get2G3G();
         switch (state) {
@@ -1324,6 +1336,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
                 (adapter.getConnectionState() == BluetoothAdapter.STATE_CONNECTED);
         onBluetoothStateChange(mBluetoothState);
     }
+
     void addBluetoothBackTile(QuickSettingsTileView view, RefreshCallback cb) {
         mBluetoothBackTile = view;
         mBluetoothBackCallback = cb;
@@ -1334,66 +1347,75 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
                 (adapter.getConnectionState() == BluetoothAdapter.STATE_CONNECTED);
         onBluetoothStateChange(mBluetoothBackState);
     }
-    boolean deviceSupportsBluetooth() {
-        return (BluetoothAdapter.getDefaultAdapter() != null);
-    }
+
     // BluetoothController callback
     @Override
     public void onBluetoothStateChange(boolean on) {
         mBluetoothState.enabled = on;
         onBluetoothStateChange(mBluetoothState);
     }
+
     public void onBluetoothStateChange(BluetoothState bluetoothStateIn) {
-        // TODO: If view is in awaiting state, disable
-        Resources r = mContext.getResources();
-        mBluetoothState.enabled = bluetoothStateIn.enabled;
-        mBluetoothState.connected = bluetoothStateIn.connected;
-        if (mBluetoothState.enabled) {
-            if (mBluetoothState.connected) {
-                mBluetoothState.iconId = R.drawable.ic_qs_bluetooth_on;
-                mBluetoothState.stateContentDescription = r.getString(R.string.accessibility_desc_connected);
+        if (DeviceUtils.deviceSupportsBluetooth()) {
+            // TODO: If view is in awaiting state, disable
+            Resources r = mContext.getResources();
+            mBluetoothState.enabled = bluetoothStateIn.enabled;
+            mBluetoothState.connected = bluetoothStateIn.connected;
+            if (mBluetoothState.enabled) {
+                if (mBluetoothState.connected) {
+                    mBluetoothState.iconId = R.drawable.ic_qs_bluetooth_on;
+                    mBluetoothState.stateContentDescription = r.getString(R.string.accessibility_desc_connected);
+                } else {
+                    mBluetoothState.iconId = R.drawable.ic_qs_bluetooth_not_connected;
+                    mBluetoothState.stateContentDescription = r.getString(R.string.accessibility_desc_on);
+                }
+                mBluetoothState.label = r.getString(R.string.quick_settings_bluetooth_label);
             } else {
-                mBluetoothState.iconId = R.drawable.ic_qs_bluetooth_not_connected;
-                mBluetoothState.stateContentDescription = r.getString(R.string.accessibility_desc_on);
+                mBluetoothState.iconId = R.drawable.ic_qs_bluetooth_off;
+                mBluetoothState.label = r.getString(R.string.quick_settings_bluetooth_off_label);
+                mBluetoothState.stateContentDescription = r.getString(R.string.accessibility_desc_off);
             }
-            mBluetoothState.label = r.getString(R.string.quick_settings_bluetooth_label);
-        } else {
-            mBluetoothState.iconId = R.drawable.ic_qs_bluetooth_off;
-            mBluetoothState.label = r.getString(R.string.quick_settings_bluetooth_off_label);
-            mBluetoothState.stateContentDescription = r.getString(R.string.accessibility_desc_off);
-        }
 
-        // Back tile: Show paired devices
-        if (mBluetoothBackTile != null) {
-            boolean isPaired = false;
-            final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-            Set<BluetoothDevice> btDevices = adapter.getBondedDevices();
-            if (btDevices.size() == 1) {
-                // Show a generic label about the number of paired bluetooth devices
-                isPaired = true;
-                mBluetoothBackState.label = 
-                    r.getString(R.string.quick_settings_bluetooth_number_paired, btDevices.size());
-            } else {
-                isPaired = false;
-                mBluetoothBackState.label = r.getString(R.string.quick_settings_bluetooth_disabled);
+            if (mBluetoothBackTile != null) {
+                boolean isPaired = false;
+                final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+                Set<BluetoothDevice> btDevices = adapter.getBondedDevices();
+                String bluetoothLabel = r.getString(R.string.quick_settings_bluetooth_disabled);
+                if (btDevices.size() == 1) {
+                    // Show a generic label about the number of paired bluetooth devices
+                    isPaired = true;
+                    bluetoothLabel =
+                        r.getString(R.string.quick_settings_bluetooth_number_paired, btDevices.size());
+                } else {
+                    isPaired = false;
+                    if (bluetoothStateIn.enabled) {
+                        bluetoothLabel = r.getString(R.string.quick_settings_bluetooth_enabled);
+                    } else {
+                        bluetoothLabel = r.getString(R.string.quick_settings_bluetooth_disabled);
+                    }
+                }
+                mBluetoothBackState.label = bluetoothLabel;
+                mBluetoothBackState.iconId = isBluetoothPairedIcon(isPaired, bluetoothStateIn.enabled, bluetoothStateIn.connected);
             }
-            mBluetoothBackState.iconId = isBluetoothPaired(isPaired && bluetoothStateIn.enabled);
-        }
 
-        mBluetoothCallback.refreshView(mBluetoothTile, mBluetoothState);
+            mBluetoothCallback.refreshView(mBluetoothTile, mBluetoothState);
 
-        if (mBluetoothBackTile != null) {
-            mBluetoothBackCallback.refreshView(mBluetoothBackTile, mBluetoothBackState);
+            if (mBluetoothBackTile != null) {
+                mBluetoothBackCallback.refreshView(mBluetoothBackTile, mBluetoothBackState);
+            }
         }
     }
 
-    private int isBluetoothPaired(boolean paired) {
-        if (paired) {
+    private int isBluetoothPairedIcon(boolean paired, boolean enable, boolean connected) {
+        if (paired && enable && connected) {
             return R.drawable.ic_qs_bluetooth_paired_on;
+        } else if (paired && enable && !connected) {
+            return R.drawable.ic_qs_bluetooth_not_connected;
+        } else if (!paired && enable && !connected) {
+            return R.drawable.ic_qs_bluetooth_on;
         }
         return R.drawable.ic_qs_bluetooth_off;
     }
-
     void refreshBluetoothTile() {
         if (mBluetoothTile != null) {
             onBluetoothStateChange(mBluetoothState.enabled);
@@ -1454,21 +1476,25 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
 
     void refreshLocationTile() {
         if (mLocationTile != null) {
-            onLocationSettingsChanged(mLocationState.enabled, mLocationState.mode);
+            onLocationSettingsChanged(mLocationController.isLocationEnabled(), mLocationController.getLocationMode());
         }
     }
 
     @Override
     public void onLocationSettingsChanged(boolean locationEnabled, int locationMode) {
-        int textResId = locationEnabled ? R.string.quick_settings_location_label
-                : R.string.quick_settings_location_off_label;
-        String label = mContext.getText(textResId).toString();
-        mLocationState.enabled = locationEnabled;
-        mLocationState.mode = locationMode;
-        mLocationState.label = label;
-        mLocationState.iconId = getLocationDrawableMode(mLocationController.locationMode());
-        mLocationCallback.refreshView(mLocationTile, mLocationState);
-        refreshBackLocationTile();
+        onBackLocationSettingsChanged(locationEnabled, locationMode);
+
+        if (DeviceUtils.deviceSupportsGps(mContext)) {
+            int textResId = locationEnabled ? R.string.quick_settings_location_label
+                   : R.string.quick_settings_location_off_label;
+            String label = mContext.getText(textResId).toString();
+            int locationIconId = locationEnabled
+                   ? R.drawable.ic_qs_location_default_on : R.drawable.ic_qs_location_default_off;
+            mLocationState.enabled = locationEnabled;
+            mLocationState.label = label;
+            mLocationState.iconId = locationIconId;
+            mLocationCallback.refreshView(mLocationTile, mLocationState);
+        }
     }
 
     void addBackLocationTile(QuickSettingsTileView view, LocationController controller, RefreshCallback cb) {
@@ -1480,27 +1506,17 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
 
     void refreshBackLocationTile() {
         if (mBackLocationTile != null) {
-            onBackLocationSettingsChanged(mLocationController.locationMode(), mLocationState.enabled);
+            onBackLocationSettingsChanged(mLocationController.isLocationEnabled(), mLocationController.getLocationMode());
         }
     }
 
-    private void onBackLocationSettingsChanged(int mode, boolean locationEnabled) {
-        mBackLocationState.enabled = locationEnabled;
-        mBackLocationState.label = getLocationMode(mContext.getResources(), mode);
-        mBackLocationState.iconId = getLocationDrawableMode(mode);
-        mBackLocationCallback.refreshView(mBackLocationTile, mBackLocationState);
-    }
-
-    private int getLocationDrawableMode(int location) {
-        switch (location) {
-            case Settings.Secure.LOCATION_MODE_SENSORS_ONLY:
-                return R.drawable.ic_qs_location_on_gps;
-            case Settings.Secure.LOCATION_MODE_BATTERY_SAVING:
-                return R.drawable.ic_qs_location_on_wifi;
-            case Settings.Secure.LOCATION_MODE_HIGH_ACCURACY:
-                return R.drawable.ic_qs_location_on;
+    private void onBackLocationSettingsChanged(boolean locationEnabled, int locationMode) {
+        if (DeviceUtils.deviceSupportsGps(mContext)) {
+            mBackLocationState.enabled = locationEnabled;
+            mBackLocationState.label = getLocationMode(mContext.getResources(), locationMode);
+            mBackLocationState.iconId = getLocationDrawableMode(locationMode);
+            mBackLocationCallback.refreshView(mBackLocationTile, mBackLocationState);
         }
-        return R.drawable.ic_qs_location_off;
     }
 
     private String getLocationMode(Resources r, int location) {
@@ -1513,6 +1529,18 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
                 return r.getString(R.string.quick_settings_location_mode_high);
         }
         return r.getString(R.string.quick_settings_location_off_label);
+    }
+
+    private int getLocationDrawableMode(int location) {
+        switch (location) {
+            case Settings.Secure.LOCATION_MODE_SENSORS_ONLY:
+                return R.drawable.ic_qs_location_on_gps;
+            case Settings.Secure.LOCATION_MODE_BATTERY_SAVING:
+                return R.drawable.ic_qs_location_on_wifi;
+            case Settings.Secure.LOCATION_MODE_HIGH_ACCURACY:
+                return R.drawable.ic_qs_location_on;
+        }
+        return R.drawable.ic_qs_location_off;
     }
 
     // Bug report
@@ -1564,7 +1592,6 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
 
     private void updateRemoteDisplays() {
         if (mRibbon) return;
-
         Resources r = mContext.getResources();
         MediaRouter.RouteInfo connectedRoute = mMediaRouter.getSelectedRoute(
                 MediaRouter.ROUTE_TYPE_REMOTE_DISPLAY);
@@ -1756,6 +1783,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
                 : r.getString(R.string.quick_settings_immersive_mode_off_label);
         mImmersiveCallback.refreshView(mImmersiveTile, mImmersiveState);
     }
+
     void refreshImmersiveTile() {
         onImmersiveChanged();
     }
@@ -1826,7 +1854,6 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
                 if (s.matches(regex)) mUsbTethered = true;
             }
         }
-
     }
 
     private void setUsbTethering(boolean enabled) {
@@ -1879,28 +1906,34 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
 
     private int getScreenTimeout() {
         return Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.SCREEN_OFF_TIMEOUT, 0);
+                Settings.System.SCREEN_OFF_TIMEOUT, SCREEN_TIMEOUT_30);
     }
 
     private void screenTimeoutChangeState() {
         int screenTimeout = getScreenTimeout();
-
-        if (screenTimeout == SCREEN_TIMEOUT_15) {
-            screenTimeout = SCREEN_TIMEOUT_30;
-        } else if (screenTimeout == SCREEN_TIMEOUT_30) {
-            screenTimeout = SCREEN_TIMEOUT_60;
-        } else if (screenTimeout == SCREEN_TIMEOUT_60) {
-            screenTimeout = SCREEN_TIMEOUT_120;
-        } else if (screenTimeout == SCREEN_TIMEOUT_120) {
-            screenTimeout = SCREEN_TIMEOUT_300;
-        } else if (screenTimeout == SCREEN_TIMEOUT_300) {
-            screenTimeout = SCREEN_TIMEOUT_600;
-        } else if (screenTimeout == SCREEN_TIMEOUT_600) {
-            screenTimeout = SCREEN_TIMEOUT_1800;
-        } else if (screenTimeout == SCREEN_TIMEOUT_1800) {
-            screenTimeout = SCREEN_TIMEOUT_15;
+        switch(screenTimeout) {
+               case SCREEN_TIMEOUT_15:
+                    screenTimeout = SCREEN_TIMEOUT_30;
+                    break;
+               case SCREEN_TIMEOUT_30:
+                    screenTimeout = SCREEN_TIMEOUT_60;
+                    break;
+               case SCREEN_TIMEOUT_60:
+                    screenTimeout = SCREEN_TIMEOUT_120;
+                    break;
+               case SCREEN_TIMEOUT_120:
+                    screenTimeout = SCREEN_TIMEOUT_300;
+                    break;
+               case SCREEN_TIMEOUT_300:
+                    screenTimeout = SCREEN_TIMEOUT_600;
+                    break;
+               case SCREEN_TIMEOUT_600:
+                    screenTimeout = SCREEN_TIMEOUT_1800;
+                    break;
+               case SCREEN_TIMEOUT_1800:
+                    screenTimeout = SCREEN_TIMEOUT_15;
+                    break;
         }
-
         Settings.System.putInt(mContext.getContentResolver(),
                 Settings.System.SCREEN_OFF_TIMEOUT, screenTimeout);
     }
