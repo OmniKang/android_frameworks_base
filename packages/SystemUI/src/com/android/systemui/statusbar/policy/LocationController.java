@@ -153,6 +153,7 @@ public class LocationController extends BroadcastReceiver {
                 .putIntForUser(cr, Settings.Secure.LOCATION_MODE, mode, currentUserId);
     }
 
+    /*
     public boolean switchLocationMode(int currentMode) {
         switch (currentMode) {
             case Settings.Secure.LOCATION_MODE_SENSORS_ONLY:
@@ -166,7 +167,7 @@ public class LocationController extends BroadcastReceiver {
                 break;
         }
         return setLocationMode(currentMode);
-    }
+    }*/
 
     /**
      * Returns the actual location mode which is running
