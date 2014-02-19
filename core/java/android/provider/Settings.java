@@ -2638,6 +2638,12 @@ public final class Settings {
         public static final String MOBILE_DATA_IN_POWER_MENU = "mobile_data_in_power_menu";
 
         /**
+         * Show Profiles in Power Menu
+         * @hide
+         */
+        public static final String PROFILES_IN_POWER_MENU = "profiles_in_power_menu";
+
+        /**
          * Sprint MWI Quirk: Show message wait indicator notifications
          * @hide
          */
@@ -3916,6 +3922,12 @@ public final class Settings {
         public static final String FORCE_SHOW_OVERFLOW_MENU = "force_show_overflow_menu";
 
         /**
+         * Show the pending notification counts as overlays on the status bar
+         * @hide
+         */
+        public static final String SYSTEM_PROFILES_ENABLED = "system_profiles_enabled";
+
+        /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *
@@ -3988,7 +4000,8 @@ public final class Settings {
             QUIET_HOURS_END,
             QUIET_HOURS_MUTE,
             QUIET_HOURS_STILL,
-            QUIET_HOURS_DIM
+            QUIET_HOURS_DIM,
+            SYSTEM_PROFILES_ENABLED
         };
 
         // Settings moved to Settings.Secure

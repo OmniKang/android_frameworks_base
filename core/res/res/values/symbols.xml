@@ -1809,6 +1809,8 @@
   <java-symbol type="string" name="app_killed_message" />
   <java-symbol type="bool" name="config_hasRemovableLid" />
   <java-symbol type="bool" name="config_smsSamsungCdmaAlternateMessageIDEncoding" />
+  <java-symbol type="string" name="global_action_choose_profile" />
+  <java-symbol type="drawable" name="ic_lock_profile" />
 
   <!-- In WiFi AP notification -->
   <java-symbol type="string" name="notify_turn_wifi_ap_off_title" />
@@ -1850,4 +1852,11 @@
 
   <java-symbol type="drawable" name="ic_privacy_guard" />
   <java-symbol type="drawable" name="ic_privacy_guard_off" />
+
+  <!-- Profiles -->
+  <java-symbol type="string" name="wildcardProfile" />
+  <java-symbol type="xml" name="profile_default" />
+  <java-symbol type="string" name="profile_picker_title" />
+  <java-symbol type="string" name="profile_none" />   
 </resources>
+
