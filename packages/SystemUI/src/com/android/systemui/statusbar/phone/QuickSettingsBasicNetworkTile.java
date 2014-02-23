@@ -29,7 +29,7 @@ import android.widget.TextView;
 
 import com.android.systemui.R;
 
-public class QuickSettingsBasicNetworkTile extends QuickSettingsTileView {
+class QuickSettingsBasicNetworkTile extends QuickSettingsTileView {
     private final TextView mTextView;
     private final ImageView mImageView;
     private final ImageView mImageViewOverlay;
@@ -60,7 +60,7 @@ public class QuickSettingsBasicNetworkTile extends QuickSettingsTileView {
     }
 
     @Override
-    public void setContent(int layoutId, LayoutInflater inflater) {
+    void setContent(int layoutId, LayoutInflater inflater) {
         throw new RuntimeException("why?");
     }
 
@@ -99,11 +99,7 @@ public class QuickSettingsBasicNetworkTile extends QuickSettingsTileView {
     @Override
     public void setTextSizes(int size) {
         mTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
-    }
-
-    @Override
-    public void callOnColumnsChange() {
-        mTextView.invalidate();
+        super.setTextSizes(size);
     }
 
     public void setTextResource(int resId) {

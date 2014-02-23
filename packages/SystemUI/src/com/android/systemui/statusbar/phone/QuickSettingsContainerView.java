@@ -43,13 +43,13 @@ public class QuickSettingsContainerView extends FrameLayout {
     private int mNumColumns;
     private int mNumFinalColumns;
     private int mNumFinalCol;
+    private boolean updateColumns = false;
 
     // The gap between tiles in the QuickSettings grid
     private float mCellGap;
 
     private Context mContext;
     private Resources mResources;
-    private int mCurrOrientation;
 
     // Default layout transition
     private LayoutTransition mLayoutTransition;
@@ -81,12 +81,11 @@ public class QuickSettingsContainerView extends FrameLayout {
         mLayoutTransition.enableTransitionType(LayoutTransition.CHANGING);
     }
 
-    public void updateResources() {
+    void updateResources() {
         mCellGap = mResources.getDimension(R.dimen.quick_settings_cell_gap);
         mNumColumns = mResources.getInteger(R.integer.quick_settings_num_columns);
         mNumFinalColumns = mResources.getInteger(R.integer.quick_settings_numfinal_columns);
         mNumFinalCol = shouldUpdateColumns() ? mNumFinalColumns : mNumColumns;
-        updateSpan();
         requestLayout();
     }
 
@@ -95,8 +94,13 @@ public class QuickSettingsContainerView extends FrameLayout {
             View v = getChildAt(i);
             if (v instanceof QuickSettingsTileView) {
                 QuickSettingsTileView qs = (QuickSettingsTileView) v;
-                // Update column on child view for text sizes
-                qs.setColumns(mNumFinalCol);
+                if (i < 3 && getTilesSize() < 10 + i) { // Modify span of the first three childs
+                    int span = mResources.getInteger(R.integer.quick_settings_user_time_settings_tile_span);
+                    qs.setColumnSpan(span);
+                } else {
+                    qs.setColumnSpan(1); // One column item
+                }
+                qs.setTextSizes(getTileTextSize());
             }
         }
     }
@@ -193,6 +197,7 @@ public class QuickSettingsContainerView extends FrameLayout {
                 }
             }
         }
+        updateSpan();
     }
 
     public void setOnEditModeChangedListener(EditModeChangedListener listener) {
@@ -207,19 +212,9 @@ public class QuickSettingsContainerView extends FrameLayout {
         return mEditModeEnabled;
     }
 
-    public void updateRotation(int orientation) {
-        if (orientation != mCurrOrientation) {
-            mCurrOrientation = orientation;
-            if (!isLandscape()) {
-                updateResources();
-            }
-        }
-    }
-
     public boolean isDynamicEnabled() {
-        int isEnabled = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.QUICK_SETTINGS_TILES_ROW, 1);
-        return (isEnabled == 1);
+        return Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.QUICK_SETTINGS_TILES_ROW, 1) != 0;
     }
 
     private boolean shouldUpdateColumns() {
@@ -227,7 +222,8 @@ public class QuickSettingsContainerView extends FrameLayout {
     }
 
     private boolean isLandscape() {
-        return (mCurrOrientation == Configuration.ORIENTATION_LANDSCAPE);
+        return Resources.getSystem().getConfiguration().orientation
+                    == Configuration.ORIENTATION_LANDSCAPE;
     }
 
     private int getTilesSize() {
@@ -238,6 +234,17 @@ public class QuickSettingsContainerView extends FrameLayout {
         }
         String[] storedTiles = tileContainer.split(QuickSettings.DELIMITER);
         return storedTiles.length;
+    }
+
+    private int getTileTextSize() {
+        // get tile text size based on column count
+        switch (mNumFinalCol) {
+            case 4:
+                return mResources.getDimensionPixelSize(R.dimen.qs_4_column_text_size);
+            case 3:
+            default:
+                return mResources.getDimensionPixelSize(R.dimen.qs_3_column_text_size);
+        }
     }
 
     public void resetAllTiles() {
@@ -273,6 +280,7 @@ public class QuickSettingsContainerView extends FrameLayout {
                 Settings.System.putString(resolver,
                         Settings.System.QUICK_SETTINGS_TILES, QuickSettings.NO_TILES);
             }
+            updateSpan();
         }
     }
 }
