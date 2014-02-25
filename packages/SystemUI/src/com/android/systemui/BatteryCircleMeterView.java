@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -188,6 +189,17 @@ public class BatteryCircleMeterView extends ImageView {
         updateSettings();
     }
 
+    private ContentObserver mObserver = new ContentObserver(new Handler()) {
+        @Override
+        public void onChange(boolean selfChange) {
+            updateSettings();
+        }
+
+        public void onChange(boolean selfChange, android.net.Uri uri) {
+            updateSettings();
+        };
+    };
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -197,6 +209,12 @@ public class BatteryCircleMeterView extends ImageView {
             updateSettings();
             mHandler.postDelayed(mInvalidate, 250);
         }
+
+        getContext().getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(Settings.System.SHOW_BATTERY_ICON),
+                true, mObserver);
+        updateSettings();
+
     }
 
     @Override
@@ -210,6 +228,7 @@ public class BatteryCircleMeterView extends ImageView {
             mCircleSize = 0;    // makes sure, mCircleSize is reread from icons on
                                 // next attach
         }
+        getContext().getContentResolver().unregisterContentObserver(mObserver);
     }
 
     @Override
@@ -309,41 +328,51 @@ public class BatteryCircleMeterView extends ImageView {
         systemColor = Settings.System.getIntForUser(resolver,
                 Settings.System.SYSTEM_ICON_COLOR, -2, UserHandle.USER_CURRENT);
 
+        boolean enabled = Settings.System.getBoolean(mContext.getContentResolver(),
+                                Settings.System.SHOW_BATTERY_ICON, true);
+
         int defaultColor = res.getColor(com.android.systemui.R.color.batterymeter_charge_color);
 
-        if (mCircleTextColor == -2) {
-            mCircleTextColor = defaultColor;
-        }
-        if (mCircleTextChargingColor == -2) {
-            mCircleTextChargingColor = defaultColor;
-        }
-        if (mCircleColor == -2) {
-            mCircleColor = defaultColor;
-        }
+        if (enabled) {
+
+           if (mCircleTextColor == -2) {
+               mCircleTextColor = defaultColor;
+           }
+           if (mCircleTextChargingColor == -2) {
+               mCircleTextChargingColor = defaultColor;
+           }
+           if (mCircleColor == -2) {
+               mCircleColor = defaultColor;
+           }
 
         /*
          * initialize vars and force redraw
          */
-        initializeCircleVars();
-        mRectLeft = null;
-        mCircleSize = 0;
+           initializeCircleVars();
+           mRectLeft = null;
+           mCircleSize = 0;
 
-        mActivated = (mBatteryStyle == BatteryMeterView.BATTERY_STYLE_CIRCLE ||
-                      mBatteryStyle == BatteryMeterView.BATTERY_STYLE_CIRCLE_PERCENT ||
-                      mBatteryStyle == BatteryMeterView.BATTERY_STYLE_DOTTED_CIRCLE ||
-                      mBatteryStyle == BatteryMeterView.BATTERY_STYLE_DOTTED_CIRCLE_PERCENT);
-        mPercentage = (mBatteryStyle == BatteryMeterView.BATTERY_STYLE_CIRCLE_PERCENT ||
-                       mBatteryStyle == BatteryMeterView.BATTERY_STYLE_DOTTED_CIRCLE_PERCENT);
+           mActivated = (mBatteryStyle == BatteryMeterView.BATTERY_STYLE_CIRCLE ||
+                         mBatteryStyle == BatteryMeterView.BATTERY_STYLE_CIRCLE_PERCENT ||
+                         mBatteryStyle == BatteryMeterView.BATTERY_STYLE_DOTTED_CIRCLE ||
+                         mBatteryStyle == BatteryMeterView.BATTERY_STYLE_DOTTED_CIRCLE_PERCENT);
+           mPercentage = (mBatteryStyle == BatteryMeterView.BATTERY_STYLE_CIRCLE_PERCENT ||
+                          mBatteryStyle == BatteryMeterView.BATTERY_STYLE_DOTTED_CIRCLE_PERCENT);
 
-        setVisibility(mActivated ? View.VISIBLE : View.GONE);
+           setVisibility(mActivated ? View.VISIBLE : View.GONE);
 
-        if (mBatteryReceiver != null) {
-            mBatteryReceiver.updateRegistration();
+           if (mBatteryReceiver != null) {
+               mBatteryReceiver.updateRegistration();
+           }
+
+           if (mActivated && mAttached) {
+               invalidate();
+           }
+
+        } else {
+            setVisibility(View.GONE);
         }
 
-        if (mActivated && mAttached) {
-            invalidate();
-        }
     }
 
     /***

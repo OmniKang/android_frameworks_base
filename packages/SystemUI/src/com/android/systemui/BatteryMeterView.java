@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.database.ContentObserver;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -34,6 +35,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.BatteryManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.AttributeSet;
@@ -175,6 +177,17 @@ public class BatteryMeterView extends View implements DemoMode {
 
     BatteryTracker mTracker = new BatteryTracker();
 
+    private ContentObserver mObserver = new ContentObserver(new Handler()) {
+        @Override
+        public void onChange(boolean selfChange) {
+            updateSettings();
+        }
+
+        public void onChange(boolean selfChange, android.net.Uri uri) {
+            updateSettings();
+        };
+    };
+
     @Override
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -187,6 +200,12 @@ public class BatteryMeterView extends View implements DemoMode {
             // preload the battery level
             mTracker.onReceive(getContext(), sticky);
         }
+
+        getContext().getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(Settings.System.SHOW_BATTERY_ICON),
+                true, mObserver);
+        updateSettings();
+
     }
 
     @Override
@@ -194,6 +213,7 @@ public class BatteryMeterView extends View implements DemoMode {
         super.onDetachedFromWindow();
 
         getContext().unregisterReceiver(mTracker);
+        getContext().getContentResolver().unregisterContentObserver(mObserver);
     }
 
     public BatteryMeterView(Context context) {
@@ -451,44 +471,53 @@ public class BatteryMeterView extends View implements DemoMode {
         systemColor = Settings.System.getIntForUser(resolver,
                 Settings.System.SYSTEM_ICON_COLOR, -2, UserHandle.USER_CURRENT);
 
+        boolean enabled = Settings.System.getBoolean(mContext.getContentResolver(),
+                                Settings.System.SHOW_BATTERY_ICON, true);
+
         boolean activated = (mBatteryStyle == BATTERY_STYLE_NORMAL ||
                       mBatteryStyle == BATTERY_STYLE_PERCENT ||
                       mBatteryStyle == BATTERY_STYLE_ICON_PERCENT);
 
-        setVisibility(activated ? View.VISIBLE : View.GONE);
+        if (enabled) {
 
-        if (activated) {
-            LinearLayout.LayoutParams lp = null;
-            float width = 0f;
-            float height = 0f;
-            Resources res = mContext.getResources();
-            DisplayMetrics metrics = res.getDisplayMetrics();
-            if (mBatteryTypeView.equals("statusbar")) {
-                height = metrics.density * 16f + 0.5f;
-                if (mBatteryStyle == BATTERY_STYLE_PERCENT) {
-                    width = metrics.density * 35f + 0.5f;
-                } else {
-                    width = metrics.density * 10.5f + 0.5f;
-                }
-                lp = new LinearLayout.LayoutParams((int) width, (int) height);
-                lp.setMarginStart((int) (metrics.density * 6f + 0.5f));
-                lp.setMargins(0, 0, 0, (int) (metrics.density * 0.5f + 0.5f));
-                setLayoutParams(lp);
-            } else if (mBatteryTypeView.equals("quicksettings")) {
-                height = metrics.density * 32f + 0.5f;
-                if (mBatteryStyle == BATTERY_STYLE_PERCENT) {
-                    width = metrics.density * 52f + 0.5f;
-                } else {
-                    width = metrics.density * 22f + 0.5f;
-                }
-                lp = new LinearLayout.LayoutParams((int) width, (int) height);
-                lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-                lp.setMargins(0, res.getDimensionPixelSize(R.dimen.qs_tile_margin_above_icon),
+            setVisibility(activated ? View.VISIBLE : View.GONE);
+
+            if (activated) {
+                LinearLayout.LayoutParams lp = null;
+                float width = 0f;
+                float height = 0f;
+                Resources res = mContext.getResources();
+                DisplayMetrics metrics = res.getDisplayMetrics();
+                if (mBatteryTypeView.equals("statusbar")) {
+                    height = metrics.density * 16f + 0.5f;
+                    if (mBatteryStyle == BATTERY_STYLE_PERCENT) {
+                        width = metrics.density * 35f + 0.5f;
+                    } else {
+                        width = metrics.density * 10.5f + 0.5f;
+                    }
+                    lp = new LinearLayout.LayoutParams((int) width, (int) height);
+                    lp.setMarginStart((int) (metrics.density * 6f + 0.5f));
+                    lp.setMargins(0, 0, 0, (int) (metrics.density * 0.5f + 0.5f));
+                    setLayoutParams(lp);
+                } else if (mBatteryTypeView.equals("quicksettings")) {
+                    height = metrics.density * 32f + 0.5f;
+                    if (mBatteryStyle == BATTERY_STYLE_PERCENT) {
+                        width = metrics.density * 52f + 0.5f;
+                    } else {
+                        width = metrics.density * 22f + 0.5f;
+                    }
+                    lp = new LinearLayout.LayoutParams((int) width, (int) height);
+                    lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+                    lp.setMargins(0, res.getDimensionPixelSize(R.dimen.qs_tile_margin_above_icon),
                     0, res.getDimensionPixelSize(R.dimen.qs_tile_margin_below_icon));
-                setLayoutParams(lp);
-            }
+                    setLayoutParams(lp);
+                }
 
-            updateBattery();
+                updateBattery();
+           }
+
+        } else {
+            setVisibility(View.GONE);
         }
     }
 

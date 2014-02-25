@@ -3094,6 +3094,13 @@ public final class Settings {
         public static final String STATUSBAR_BATTERY_BAR_ANIMATE = "statusbar_battery_bar_animate";
 
         /**
+         * Show battery icon of the status bar
+         * default: true
+         * @hide
+         */
+        public static final String SHOW_BATTERY_ICON = "show_battery_icon";
+
+        /**
          * I am the lolrus.
          * <p>
          * Nonzero values indicate that the user has a bukkit.
