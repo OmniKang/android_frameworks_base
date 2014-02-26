@@ -43,7 +43,7 @@ public class ClockCenter extends Clock {
 
     @Override
     public void updateClockVisibility() {
-        if (mClockStyle == STYLE_CLOCK_CENTER && mShowClock && mShowClockStatusBar) {
+        if (mClockStyle == STYLE_CLOCK_CENTER && mShowClock && mShowClockStatusBar)
             setVisibility(View.VISIBLE);
         else
             setVisibility(View.GONE);

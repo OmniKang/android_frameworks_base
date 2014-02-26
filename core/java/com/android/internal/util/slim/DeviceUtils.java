@@ -25,6 +25,7 @@ import android.hardware.display.WifiDisplayStatus;
 import android.hardware.SensorManager;
 import android.net.ConnectivityManager;
 import android.nfc.NfcAdapter;
+import android.os.Vibrator;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.view.DisplayInfo;
@@ -103,20 +104,6 @@ public class DeviceUtils {
     public static boolean deviceSupportsVibrator(Context ctx) {
         Vibrator vibrator = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
         return vibrator.hasVibrator();
-    }
-
-    public static boolean deviceSupportsTorch(Context context) {
-        PackageManager pm = context.getPackageManager();
-        try {
-            List<ApplicationInfo> packages = pm.getInstalledApplications(0);
-                for (ApplicationInfo packageInfo : packages) {
-                    if (packageInfo.packageName.equals(OmniTorchConstants.APP_PACKAGE_NAME)) {
-                        return true;
-                    }
-                }
-        } catch (Exception e) {
-        }
-        return false;
     }
 
     public static boolean deviceSupportsProximitySensor(Context context) {
