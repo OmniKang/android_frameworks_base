@@ -22,6 +22,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.WifiDisplayStatus;
+import android.hardware.SensorManager;
 import android.net.ConnectivityManager;
 import android.nfc.NfcAdapter;
 import android.telephony.TelephonyManager;
@@ -31,6 +32,8 @@ import android.view.WindowManager;
 import android.util.Log;
 
 import com.android.internal.telephony.PhoneConstants;
+import static android.hardware.Sensor.TYPE_LIGHT;
+import static android.hardware.Sensor.TYPE_PROXIMITY;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +59,12 @@ public class DeviceUtils {
                     != WifiDisplayStatus.FEATURE_STATE_UNAVAILABLE);
     }
 
+    public static boolean deviceSupportsWifiAp(Context context) {
+        ConnectivityManager cm =
+            (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        return (cm.getTetherableWifiRegexs().length != 0);
+    }
+
     public static boolean deviceSupportsMobileData(Context context) {
         ConnectivityManager cm =
             (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -73,6 +82,61 @@ public class DeviceUtils {
     public static class FilteredDeviceFeaturesArray {
         public String[] entries;
         public String[] values;
+    }
+
+    public static boolean deviceSupportsLteCdma(Context context) {
+        final TelephonyManager tm =
+            (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        return (tm.getLteOnCdmaMode() == PhoneConstants.LTE_ON_CDMA_TRUE);
+    }
+
+    public static boolean deviceSupportsLteGsm(Context context) {
+        final TelephonyManager tm =
+            (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        return (tm.getLteOnCdmaMode() == PhoneConstants.LTE_ON_CDMA_TRUE) || (tm.getLteOnGsmMode() != 0);
+    }
+
+    public static boolean deviceSupportsGps(Context context) {
+        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
+    }
+
+    public static boolean deviceSupportsVibrator(Context ctx) {
+        Vibrator vibrator = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
+        return vibrator.hasVibrator();
+    }
+
+    public static boolean deviceSupportsTorch(Context context) {
+        PackageManager pm = context.getPackageManager();
+        try {
+            List<ApplicationInfo> packages = pm.getInstalledApplications(0);
+                for (ApplicationInfo packageInfo : packages) {
+                    if (packageInfo.packageName.equals(OmniTorchConstants.APP_PACKAGE_NAME)) {
+                        return true;
+                    }
+                }
+        } catch (Exception e) {
+        }
+        return false;
+    }
+
+    public static boolean deviceSupportsProximitySensor(Context context) {
+        SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        return sm.getDefaultSensor(TYPE_PROXIMITY) != null;
+    }
+
+    public static boolean deviceSupportsLightSensor(Context context) {
+        SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        return sm.getDefaultSensor(TYPE_LIGHT) != null;
+    }
+
+    public static boolean isAppInstalled(Context context, String appUri) {
+        try {
+            PackageManager pm = context.getPackageManager();
+            pm.getPackageInfo(appUri, PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private static int getScreenType(Context con) {
