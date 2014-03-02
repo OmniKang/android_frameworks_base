@@ -457,6 +457,8 @@ public class BatteryMeterView extends View implements DemoMode {
     public void updateSettings() {
         ContentResolver resolver = mContext.getContentResolver();
 
+        boolean enabled = true;
+
         mBatteryStyle = Settings.System.getIntForUser(resolver,
                 Settings.System.STATUS_BAR_BATTERY, 0, UserHandle.USER_CURRENT);
         mBatteryColor = Settings.System.getIntForUser(resolver,
@@ -471,8 +473,8 @@ public class BatteryMeterView extends View implements DemoMode {
         systemColor = Settings.System.getIntForUser(resolver,
                 Settings.System.SYSTEM_ICON_COLOR, -2, UserHandle.USER_CURRENT);
 
-        boolean enabled = Settings.System.getBoolean(mContext.getContentResolver(),
-                                Settings.System.SHOW_BATTERY_ICON, true);
+        enabled = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.SHOW_BATTERY_ICON, enabled ? 1 : 0) != 0;
 
         boolean activated = (mBatteryStyle == BATTERY_STYLE_NORMAL ||
                       mBatteryStyle == BATTERY_STYLE_PERCENT ||

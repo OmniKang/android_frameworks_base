@@ -309,6 +309,8 @@ public class BatteryCircleMeterView extends ImageView {
         Resources res = getResources();
         ContentResolver resolver = mContext.getContentResolver();
 
+        boolean enabled = true;
+
         mBatteryStyle = Settings.System.getIntForUser(resolver,
                 Settings.System.STATUS_BAR_BATTERY, 0, UserHandle.USER_CURRENT);
 
@@ -328,8 +330,8 @@ public class BatteryCircleMeterView extends ImageView {
         systemColor = Settings.System.getIntForUser(resolver,
                 Settings.System.SYSTEM_ICON_COLOR, -2, UserHandle.USER_CURRENT);
 
-        boolean enabled = Settings.System.getBoolean(mContext.getContentResolver(),
-                                Settings.System.SHOW_BATTERY_ICON, true);
+        enabled = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.SHOW_BATTERY_ICON, enabled ? 1 : 0) != 0;
 
         int defaultColor = res.getColor(com.android.systemui.R.color.batterymeter_charge_color);
 
