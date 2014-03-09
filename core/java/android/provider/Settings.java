@@ -2830,6 +2830,24 @@ public final class Settings {
         public static final String ACTIVE_DISPLAY_BYPASS = "active_display_bypass";
 
         /**
+         * Whether to showing wallpaper behind active display.
+         * @hide
+         */
+        public static final String ACTIVE_DISPLAY_WALLPAPER = "active_display_wallpaper";
+
+        /**
+         * Whether to not showing active display when there is annoying notifications.
+         * @hide
+         */
+        public static final String ACTIVE_DISPLAY_ANNOYING = "active_display_annoying";
+
+        /**
+         * double tap every where to sleep on active display.
+         * @hide
+         */
+        public static final String ACTIVE_DISPLAY_DOUBLE_TAP = "active_display_double_tap";
+
+        /**
          * Screen-On Notification Light,
          * should default to 1 (yes, Notification Light is enabled when screen is on)
          * @hide
