@@ -69,4 +69,12 @@
 
     <string name="screenshot_delete_confirmation">Screenshot deleted</string>
     <string name="status_bar_notification_hide_icon_packages">Hide app\'s notification icon(s)</string>
+
+    <string name="onthego_notif_ticker">On-The-Go activated</string>
+    <string name="onthego_notif_title">On-The-Go is active</string>
+    <string name="onthego_notif_stop">Stop</string>
+    <string name="onthego_notif_options">Options</string>
+    <string name="onthego_notif_error">Unable to start On-The-Go</string>
+    <string name="onthego_transparency">Transparency</string>
+
 </resources>

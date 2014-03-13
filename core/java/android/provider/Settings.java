@@ -1008,6 +1008,29 @@ public final class Settings {
                 if (c != null) c.close();
             }
         }
+
+        /**
+         * If On-The-Go should be displayed at the power menu.
+         *
+         * @hide
+         */
+        public static final String POWER_MENU_ONTHEGO_ENABLED = "power_menu_onthego_enabled";
+
+        /**
+         * The alpha value of the On-The-Go overlay.
+         *
+         * @hide
+         */
+        public static final String ON_THE_GO_ALPHA = "on_the_go_alpha";
+
+        /**
+         * The camera instance to use.
+         * 0 = Rear Camera
+         * 1 = Front Camera
+         *
+         * @hide
+         */
+        public static final String ON_THE_GO_CAMERA = "on_the_go_camera";
     }
 
     /**
@@ -1022,7 +1045,7 @@ public final class Settings {
          * The content:// style URL for this table
          */
         public static final Uri CONTENT_URI =
-            Uri.parse("content://" + AUTHORITY + "/system");
+                Uri.parse("content://" + AUTHORITY + "/system");
 
         private static final NameValueCache sNameValueCache = new NameValueCache(
                 SYS_PROP_SETTING_VERSION,
@@ -1031,6 +1054,7 @@ public final class Settings {
                 CALL_METHOD_PUT_SYSTEM);
 
         private static final HashSet<String> MOVED_TO_SECURE;
+
         static {
             MOVED_TO_SECURE = new HashSet<String>(30);
             MOVED_TO_SECURE.add(Secure.ANDROID_ID);
@@ -1066,6 +1090,7 @@ public final class Settings {
 
         private static final HashSet<String> MOVED_TO_GLOBAL;
         private static final HashSet<String> MOVED_TO_SECURE_THEN_GLOBAL;
+
         static {
             MOVED_TO_GLOBAL = new HashSet<String>();
             MOVED_TO_SECURE_THEN_GLOBAL = new HashSet<String>();
@@ -1192,7 +1217,7 @@ public final class Settings {
         public static Uri getUriFor(String name) {
             if (MOVED_TO_SECURE.contains(name)) {
                 Log.w(TAG, "Setting " + name + " has moved from android.provider.Settings.System"
-                    + " to android.provider.Settings.Secure, returning Secure URI.");
+                        + " to android.provider.Settings.Secure, returning Secure URI.");
                 return Secure.getUriFor(Secure.CONTENT_URI, name);
             }
             if (MOVED_TO_GLOBAL.contains(name) || MOVED_TO_SECURE_THEN_GLOBAL.contains(name)) {
@@ -1480,7 +1505,7 @@ public final class Settings {
         public static void getConfigurationForUser(ContentResolver cr, Configuration outConfig,
                 int userHandle) {
             outConfig.fontScale = Settings.System.getFloatForUser(
-                cr, FONT_SCALE, outConfig.fontScale, userHandle);
+                    cr, FONT_SCALE, outConfig.fontScale, userHandle);
             if (outConfig.fontScale < 0) {
                 outConfig.fontScale = 1;
             }
@@ -1514,7 +1539,7 @@ public final class Settings {
 
         /** @hide */
         public static boolean hasInterestingConfigurationChanges(int changes) {
-            return (changes&ActivityInfo.CONFIG_FONT_SCALE) != 0;
+            return (changes & ActivityInfo.CONFIG_FONT_SCALE) != 0;
         }
 
         /** @deprecated - Do not use */
@@ -1766,7 +1791,7 @@ public final class Settings {
          * 0 -- neither connectable nor discoverable
          */
         public static final String BLUETOOTH_DISCOVERABILITY =
-            "bluetooth_discoverability";
+                "bluetooth_discoverability";
 
         /**
          * Bluetooth discoverability timeout.  If this value is nonzero, then
@@ -1774,7 +1799,7 @@ public final class Settings {
          * after which is becomes simply connectable.  The value is in seconds.
          */
         public static final String BLUETOOTH_DISCOVERABILITY_TIMEOUT =
-            "bluetooth_discoverability_timeout";
+                "bluetooth_discoverability_timeout";
 
         /**
          * @deprecated Use {@link android.provider.Settings.Secure#LOCK_PATTERN_ENABLED}
@@ -1797,7 +1822,7 @@ public final class Settings {
          */
         @Deprecated
         public static final String LOCK_PATTERN_TACTILE_FEEDBACK_ENABLED =
-            "lock_pattern_tactile_feedback_enabled";
+                "lock_pattern_tactile_feedback_enabled";
 
 
         /**
@@ -1964,11 +1989,11 @@ public final class Settings {
          */
         public static final String MODE_RINGER_STREAMS_AFFECTED = "mode_ringer_streams_affected";
 
-         /**
-          * Determines which streams are affected by mute. The
-          * stream type's bit should be set to 1 if it should be muted when a mute request
-          * is received.
-          */
+        /**
+         * Determines which streams are affected by mute. The
+         * stream type's bit should be set to 1 if it should be muted when a mute request
+         * is received.
+         */
          public static final String MUTE_STREAMS_AFFECTED = "mute_streams_affected";
 
         /**
