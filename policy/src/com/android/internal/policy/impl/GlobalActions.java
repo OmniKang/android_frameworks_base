@@ -18,6 +18,7 @@ package com.android.internal.policy.impl;
 
 import com.android.internal.app.AlertController;
 import com.android.internal.app.AlertController.AlertParams;
+import com.android.internal.statusbar.IStatusBarService;
 import com.android.internal.telephony.TelephonyIntents;
 import com.android.internal.telephony.TelephonyProperties;
 import com.android.internal.R;
@@ -84,7 +85,6 @@ import android.content.ComponentName;
 import android.os.IBinder;
 import android.os.Messenger;
 
-
 /**
  * Helper to show the global actions dialog.  Each item is an {@link Action} that
  * may show depending on whether the keyguard is showing, and whether the device
@@ -144,7 +144,6 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         telephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_SERVICE_STATE);
         mConnectivityManager = (ConnectivityManager)
                 context.getSystemService(Context.CONNECTIVITY_SERVICE);
-
         mHasTelephony = mConnectivityManager.isNetworkSupported(ConnectivityManager.TYPE_MOBILE);
         mContext.getContentResolver().registerContentObserver(
                 Settings.Global.getUriFor(Settings.Global.AIRPLANE_MODE_ON), true,
@@ -193,6 +192,14 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     private void handleShow() {
         awakenIfNecessary();
         prepareDialog();
+
+        final IStatusBarService barService = IStatusBarService.Stub.asInterface(
+              ServiceManager.getService(Context.STATUS_BAR_SERVICE));
+        try {
+             barService.collapsePanels();
+        } catch (RemoteException ex) {
+             // bad bad
+        }
 
         WindowManager.LayoutParams attrs = mDialog.getWindow().getAttributes();
         attrs.setTitle("GlobalActions");
@@ -263,16 +270,12 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 R.string.global_actions_mobile_data_off_status) {
 
             void onToggle(boolean on) {
-                // comment
-                Log.i(TAG, "onToggle");
                 boolean currentState = mConnectivityManager.getMobileDataEnabled();
                 mConnectivityManager.setMobileDataEnabled(!currentState);
             }
 
             @Override
             protected void changeStateFromPress(boolean buttonOn) {
-                // comment
-                Log.i(TAG, "changeStateFromPress");
             }
 
             public boolean showDuringKeyguard() {
@@ -283,7 +286,6 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 return false;
             }
         };
-
 
         mItems = new ArrayList<Action>();
 
@@ -330,12 +332,6 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                     return true;
                 }
             });
-
-        // next: mobile data
-        if (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.MOBILE_DATA_IN_POWER_MENU, 0) != 0) {
-            mItems.add(mMobileDataOn);
-        }
 
         // next: profile
         // only shown if both system profiles and the menu item is enabled, enabled by default
@@ -392,6 +388,12 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 });
         }
 
+        // next: mobile data
+        if (Settings.System.getInt(mContext.getContentResolver(),
+            Settings.System.MOBILE_DATA_IN_POWER_MENU, 0) != 0) {
+            mItems.add(mMobileDataOn);
+        }
+
         // next: screen record, if enabled
         if (mShowScreenRecord) {
             if (Settings.System.getInt(mContext.getContentResolver(),
@@ -419,12 +421,37 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             }
         }
 
-        // next: airplane mode
+        // next: onthego, if enabled
         if (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.AIRPLANE_MODE_IN_POWER_MENU, 1) != 0) {
-            mItems.add(mAirplaneModeOn);
+                Settings.System.ONTHEGO_IN_POWER_MENU, 0) != 0) {
+            mItems.add(
+                new SinglePressAction(com.android.internal.R.drawable.ic_lock_onthego,
+                        R.string.global_action_onthego) {
+
+                    public void onPress() {
+                        startOnTheGo();
+                    }
+
+                    public boolean onLongPress() {
+                        stopOnTheGo();
+                        return true;
+                    }
+
+                    public boolean showDuringKeyguard() {
+                        return true;
+                    }
+
+                    public boolean showBeforeProvisioning() {
+                        return true;
+                    }
+                });
         }
 
+        // next: airplane mode
+        if (Settings.System.getInt(mContext.getContentResolver(),
+            Settings.System.AIRPLANE_MODE_IN_POWER_MENU, 1) != 0) {
+            mItems.add(mAirplaneModeOn);
+        }
 
         // next: bug report, if enabled
         if (Settings.Global.getInt(mContext.getContentResolver(),
@@ -477,7 +504,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
         // last: silent mode
         if (mShowSilentToggle && Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.SOUND_TOGGLES_IN_POWER_MENU, 1) != 0) {
+            Settings.System.SOUND_TOGGLES_IN_POWER_MENU, 1) != 0) {
             mItems.add(mSilentModeAction);
         }
 
@@ -738,10 +765,30 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         }
     }
 
+    private void startOnTheGo() {
+        final ComponentName cn = new ComponentName("com.android.systemui",
+                "com.android.systemui.nameless.onthego.OnTheGoService");
+        final Intent startIntent = new Intent();
+        startIntent.setComponent(cn);
+        startIntent.setAction("start");
+        mContext.startService(startIntent);
+    }
+
+    private void stopOnTheGo() {
+        final ComponentName cn = new ComponentName("com.android.systemui",
+                "com.android.systemui.nameless.onthego.OnTheGoService");
+        final Intent stopIntent = new Intent();
+        stopIntent.setComponent(cn);
+        stopIntent.setAction("stop");
+        mContext.startService(stopIntent);
+        mHandler.sendEmptyMessage(MESSAGE_DISMISS);
+    }
+
     private void prepareDialog() {
         refreshSilentMode();
         mAirplaneModeOn.updateState(mAirplaneState);
-        mMobileDataOn.updateState(mConnectivityManager.getMobileDataEnabled() ? ToggleAction.State.On : ToggleAction.State.Off);
+        mMobileDataOn.updateState(mConnectivityManager.getMobileDataEnabled()
+                          ? ToggleAction.State.On : ToggleAction.State.Off);
         mAdapter.notifyDataSetChanged();
         mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
         if (mShowSilentToggle) {
