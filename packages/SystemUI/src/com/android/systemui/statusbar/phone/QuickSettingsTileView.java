@@ -143,10 +143,6 @@ class QuickSettingsTileView extends FrameLayout {
         }
     }
 
-    int getTextSizes() {
-        return mTileTextSize;
-    }
-
     public void setContent(int layoutId, LayoutInflater inflater) {
         mContentLayoutId = layoutId;
         inflater.inflate(layoutId, this);

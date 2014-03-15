@@ -196,6 +196,12 @@ public class LocationController extends BroadcastReceiver {
         return setLocationMode(location);
     }
 
+    public int locationMode() {
+        ContentResolver resolver = mContext.getContentResolver();
+        return Settings.Secure.getIntForUser(resolver, Settings.Secure.LOCATION_MODE,
+                Settings.Secure.LOCATION_MODE_OFF, ActivityManager.getCurrentUser());
+    }
+
     public boolean isLocationAllowPanelCollapse() {
         ContentResolver resolver = mContext.getContentResolver();
         // QuickSettings always runs as the owner, so specifically retrieve the settings

@@ -67,11 +67,6 @@ class QuickSettingsBasicBackBatteryTile extends QuickSettingsTileView {
         mCircleBattery = (BatteryCircleMeterView) findViewById(R.id.circle_battery);
     }
 
-    @Override
-    void setContent(int layoutId, LayoutInflater inflater) {
-        throw new RuntimeException("why?");
-    }
-
     public BatteryMeterView getBattery() {
         return mBattery;
     }
