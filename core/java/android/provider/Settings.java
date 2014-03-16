@@ -2608,22 +2608,6 @@ public final class Settings {
         public static final String STATUS_BAR_NETWORK_STATS_UPDATE_INTERVAL = "status_bar_network_stats_update_frequency";
 
         /**
-         * The alpha value of the On-The-Go overlay.
-         *
-         * @hide
-         */
-        public static final String ON_THE_GO_ALPHA = "on_the_go_alpha";
-
-        /**
-         * The camera instance to use.
-         * 0 = Rear Camera
-         * 1 = Front Camera
-         *
-         * @hide
-         */
-        public static final String ON_THE_GO_CAMERA = "on_the_go_camera";
-
-        /**
          * Show Screenshot in Power Menu
          * @hide
          */
@@ -2634,12 +2618,6 @@ public final class Settings {
          * @hide
          */
         public static final String SCREENRECORD_IN_POWER_MENU = "screenrecord_in_power_menu";
-
-        /**
-         * Show on the go in Power Menu
-         * @hide
-         */
-        public static final String ONTHEGO_IN_POWER_MENU = "onthego_in_power_menu";
 
         /**
          * Show AirplaneMode in Power Menu
