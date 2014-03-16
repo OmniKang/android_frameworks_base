@@ -422,8 +422,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         }
 
         // next: On-The-Go, if enabled
-        boolean showOnTheGo = Settings.Nameless.getBoolean(cr,
-                Settings.Nameless.POWER_MENU_ONTHEGO_ENABLED, false);
+        boolean showOnTheGo = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.POWER_MENU_ONTHEGO_ENABLED, 0) != 0;
         if (showOnTheGo) {
             mItems.add(
                     new SinglePressAction(R.drawable.ic_lock_onthego,

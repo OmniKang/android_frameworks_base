@@ -1008,36 +1008,6 @@ public final class Settings {
                 if (c != null) c.close();
             }
         }
-
-        /**
-         * If On-The-Go should be displayed at the power menu.
-         *
-         * @hide
-         */
-        public static final String POWER_MENU_ONTHEGO_ENABLED = "power_menu_onthego_enabled";
-
-        /**
-         * The alpha value of the On-The-Go overlay.
-         *
-         * @hide
-         */
-        public static final String ON_THE_GO_ALPHA = "on_the_go_alpha";
-
-        /**
-         * The camera instance to use.
-         * 0 = Rear Camera
-         * 1 = Front Camera
-         *
-         * @hide
-         */
-        public static final String ON_THE_GO_CAMERA = "on_the_go_camera";
-
-        /**
-         * Whether the service should restart itself or not.
-         *
-         * @hide
-         */
-        public static final String ON_THE_GO_SERVICE_RESTART = "on_the_go_service_restart";
     }
 
     /**
@@ -1494,6 +1464,37 @@ public final class Settings {
         public static boolean putFloatForUser(ContentResolver cr, String name, float value,
                 int userHandle) {
             return putStringForUser(cr, name, Float.toString(value), userHandle);
+        }
+
+        /** @hide */
+        public static boolean getBoolean(ContentResolver cr, String name, boolean def) {
+            return getBooleanForUser(cr, name, def, UserHandle.myUserId());
+        }
+
+        /** @hide */
+        public static boolean getBooleanForUser(ContentResolver cr, String name, boolean def,
+                                                int userHandle) {
+            final String v = getStringForUser(cr, name, userHandle);
+            try {
+                if (v != null) {
+                    return "1".equals(v);
+                } else {
+                    return def;
+                }
+            } catch (NumberFormatException e) {
+                return def;
+            }
+        }
+
+        /** @hide */
+        public static boolean putBoolean(ContentResolver cr, String name, boolean value) {
+            return putBooleanForUser(cr, name, value, UserHandle.myUserId());
+        }
+
+        /** @hide */
+        public static boolean putBooleanForUser(ContentResolver cr, String name, boolean value,
+                                                int userHandle) {
+            return putStringForUser(cr, name, value ? "1" : "0", userHandle);
         }
 
         /**
@@ -2632,6 +2633,36 @@ public final class Settings {
          * @hide
          */
         public static final String STATUS_BAR_NETWORK_STATS = "status_bar_network_stats";
+
+        /**
+         * If On-The-Go should be displayed at the power menu.
+         *
+         * @hide
+         */
+        public static final String POWER_MENU_ONTHEGO_ENABLED = "power_menu_onthego_enabled";
+
+        /**
+         * The alpha value of the On-The-Go overlay.
+         *
+         * @hide
+         */
+        public static final String ON_THE_GO_ALPHA = "on_the_go_alpha";
+
+        /**
+         * The camera instance to use.
+         * 0 = Rear Camera
+         * 1 = Front Camera
+         *
+         * @hide
+         */
+        public static final String ON_THE_GO_CAMERA = "on_the_go_camera";
+
+        /**
+         * Whether the service should restart itself or not.
+         *
+         * @hide
+         */
+        public static final String ON_THE_GO_SERVICE_RESTART = "on_the_go_service_restart";
 
         /**
          * Frequency at which stats are updated, in milliseconds
