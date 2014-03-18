@@ -23,6 +23,8 @@ import android.app.INotificationManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.PendingIntent.CanceledException;
+import android.app.Profile;
+import android.app.ProfileManager;
 import android.app.StatusBarManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -173,6 +175,8 @@ public class ActiveDisplayView extends FrameLayout
 
     private SettingsObserver mSettingsObserver;
 
+    private ProfileManager mProfileManager;
+
     // service
     private StatusBarManager mStatusBarManager;
     private AlarmManager mAM;
@@ -237,7 +241,7 @@ public class ActiveDisplayView extends FrameLayout
 
         @Override
         public void onNotificationPosted(StatusBarNotification sbn) {
-            if (shouldShowNotification() && isValidNotification(sbn) && !inQuietHours()) {
+            if (shouldShowNotification() && isValidNotification(sbn) && !inQuietHours() && !isDisabledByProfiles()) {
                 // need to make sure either the screen is off or the user is currently
                 // viewing the notifications
                 if (getVisibility() == View.VISIBLE || !isScreenOn()) {
@@ -457,6 +461,7 @@ public class ActiveDisplayView extends FrameLayout
             } else {
                 unregisterCallbacks();
             }
+
         }
     }
 
@@ -529,6 +534,8 @@ public class ActiveDisplayView extends FrameLayout
                 return true;
             }
         });
+
+        mProfileManager = (ProfileManager) context.getSystemService(Context.PROFILE_SERVICE);
     }
 
     public void setBar(BaseStatusBar bar) {
@@ -552,7 +559,7 @@ public class ActiveDisplayView extends FrameLayout
     public synchronized void onFar() {
         mProximityIsFar = true;
         if (!isScreenOn() && mPocketMode != POCKET_MODE_OFF
-            && !isOnCall() && mActiveDisplayEnabled && !inQuietHours()) {
+            && !isOnCall() && mActiveDisplayEnabled && !inQuietHours() && !isDisabledByProfiles()) {
             if ((System.currentTimeMillis() >= (mPocketTime + mProximityThreshold)) && (mPocketTime != 0)) {
                 if (mNotification == null) {
                     mNotification = getNextAvailableNotification();
@@ -841,6 +848,11 @@ public class ActiveDisplayView extends FrameLayout
         return mBypassActiveDisplay && isSecure;
     }
 
+    private boolean isDisabledByProfiles() {
+        boolean isDisabled = mProfileManager.getActiveProfile().getDisableAD();
+        return isDisabled;
+    }
+
     private void unlockKeyguardActivity() {
         hideNotificationView();
         sendUnlockBroadcast();
@@ -988,6 +1000,7 @@ public class ActiveDisplayView extends FrameLayout
         boolean isQuietHourMute = QuietHoursHelper.inQuietHours(mContext, Settings.System.QUIET_HOURS_MUTE);
         return isQuietHourDim || isQuietHourMute;
     }
+
     private void onScreenTurnedOn() {
         cancelRedisplayTimer();
         if (!mIsActive) {
@@ -1152,6 +1165,7 @@ public class ActiveDisplayView extends FrameLayout
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_USER_PRESENT);
+
         mContext.registerReceiver(mBroadcastReceiver, filter);
     }
 

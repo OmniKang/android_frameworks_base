@@ -78,6 +78,8 @@ public final class Profile implements Parcelable, Comparable {
 
     private int mScreenLockMode = LockMode.DEFAULT;
 
+    private int mDisableAD = 0;
+
     /** @hide */
     public static class LockMode {
         public static final int DEFAULT = 0;
@@ -346,6 +348,7 @@ public final class Profile implements Parcelable, Comparable {
         dest.writeParcelable(mRingMode, flags);
         dest.writeParcelable(mAirplaneMode, flags);
         dest.writeInt(mScreenLockMode);
+        dest.writeInt(mDisableAD);
         dest.writeMap(mTriggers);
     }
 
@@ -379,6 +382,7 @@ public final class Profile implements Parcelable, Comparable {
         mRingMode = (RingModeSettings) in.readParcelable(null);
         mAirplaneMode = (AirplaneModeSettings) in.readParcelable(null);
         mScreenLockMode = in.readInt();
+        mDisableAD = in.readInt();
         in.readMap(mTriggers, null);
     }
 
@@ -479,6 +483,15 @@ public final class Profile implements Parcelable, Comparable {
         mDirty = true;
     }
 
+    public boolean getDisableAD() {
+        return mDisableAD == 1 ? true : false;
+    }
+
+    public void setDisableAD(boolean disableAD) {
+        mDisableAD = disableAD ? 1 : 0;
+    }
+
+
     public AirplaneModeSettings getAirplaneMode() {
         return mAirplaneMode;
     }
@@ -550,6 +563,10 @@ public final class Profile implements Parcelable, Comparable {
         builder.append("<screen-lock-mode>");
         builder.append(mScreenLockMode);
         builder.append("</screen-lock-mode>\n");
+
+        builder.append("<disable-ad>");
+        builder.append(mDisableAD);
+        builder.append("</disable-ad>\n");
 
         mAirplaneMode.getXmlString(builder, context);
 
@@ -681,6 +698,9 @@ public final class Profile implements Parcelable, Comparable {
                 }
                 if (name.equals("screen-lock-mode")) {
                     profile.setScreenLockMode(Integer.valueOf(xpp.nextText()));
+                }
+                if (name.equals("disable-ad")) {
+                    profile.setDisableAD(Boolean.valueOf(xpp.nextText()));
                 }
                 if (name.equals("profileGroup")) {
                     ProfileGroup pg = ProfileGroup.fromXml(xpp, context);
