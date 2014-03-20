@@ -560,6 +560,8 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                 }
                 prepareNavigationBarView();
             }
+
+            update();
         }
 
         public void update() {
@@ -3776,11 +3778,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     private void updateSwapXY() {
         if (mNavigationBarView != null
                 && mNavigationBarView.mDelegateHelper != null) {
-            boolean navigationBarCanMove = DeviceUtils.isPhone(mContext) ?
-                    Settings.System.getIntForUser(mContext.getContentResolver(),
-                        Settings.System.NAVIGATION_BAR_CAN_MOVE, 1,
-                        UserHandle.USER_CURRENT) == 1
-                    : false;
             // if we are in landscape mode and NavBar
             // can move swap the XY coordinates for NaVRing Swipe
             mNavigationBarView.mDelegateHelper.setSwapXY(
