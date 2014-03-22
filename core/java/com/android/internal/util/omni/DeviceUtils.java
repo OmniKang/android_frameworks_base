@@ -22,6 +22,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.nfc.NfcAdapter;
+import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
@@ -98,6 +99,12 @@ public class DeviceUtils {
         } catch (Exception e) {
         }
         return false;
+    }
+
+    public static boolean deviceSupportNavigationBar(Context context) {
+        boolean hasNavBar = context.getResources().getBoolean(
+                com.android.internal.R.bool.config_showNavigationBar);
+        return hasNavBar || (SystemProperties.getInt("qemu.hw.mainkeys", 1) == 0);
     }
 
     public static boolean isAppInstalled(Context context, String appUri) {
