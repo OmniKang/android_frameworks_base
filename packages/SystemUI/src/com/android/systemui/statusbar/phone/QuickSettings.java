@@ -33,6 +33,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.UserInfo;
 import android.content.res.Resources;
@@ -46,6 +47,7 @@ import android.media.AudioManager;
 import android.media.MediaRouter;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
+import android.nfc.NfcAdapter;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.PowerManager;
@@ -108,6 +110,7 @@ class QuickSettings {
         WIFI,
         RSSI,
         BLUETOOTH,
+        NFC,
         VOLUME,
         BATTERY,
         ROTATION,
@@ -128,7 +131,8 @@ class QuickSettings {
         + DELIMITER + Tile.RSSI + DELIMITER + Tile.BLUETOOTH + DELIMITER + Tile.VOLUME
         + DELIMITER + Tile.BATTERY + DELIMITER + Tile.ROTATION+ DELIMITER + Tile.IMMERSIVE
         + DELIMITER + Tile.LOCATION + DELIMITER + Tile.AIRPLANE + DELIMITER + Tile.QUITEHOUR
-        + DELIMITER + Tile.USBMODE + DELIMITER + Tile.SLEEP + DELIMITER + Tile.SYNC;
+        + DELIMITER + Tile.USBMODE + DELIMITER + Tile.SLEEP + DELIMITER + Tile.SYNC
+        + DELIMITER + Tile.NFC;
 
     private Context mContext;
     private PanelBar mBar;
@@ -1137,6 +1141,38 @@ class QuickSettings {
                       });
                       parent.addView(bluetoothTile);
                       if (addMissing) bluetoothTile.setVisibility(View.GONE);
+                  }
+               } else if (Tile.NFC.toString().equals(tile.toString())) { // NFC tile
+                  // NFC
+                  if(mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_NFC)) {
+                      final QuickSettingsBasicTile nfcTile = new QuickSettingsBasicTile(mContext);
+
+                      nfcTile.setTileId(Tile.NFC);
+                      nfcTile.setImageResource(R.drawable.ic_qs_nfc_off);
+                      nfcTile.setTextResource(R.string.quick_settings_nfc_off);
+                      nfcTile.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                try {
+                                    if(NfcAdapter.getNfcAdapter(mContext).isEnabled()) {
+                                        NfcAdapter.getNfcAdapter(mContext).disable();
+                                    } else {
+                                        NfcAdapter.getNfcAdapter(mContext).enable();
+                                    }
+                                } catch (Exception e) {}
+                            }
+                      });
+                      nfcTile.setOnLongClickListener(new View.OnLongClickListener() {
+                            @Override
+                            public boolean onLongClick(View v) {
+                                startSettingsActivity(android.provider.Settings.ACTION_WIRELESS_SETTINGS);
+                                return true;
+                            }
+                      });
+                      mModel.addNfcTile(nfcTile,
+                             new QuickSettingsModel.BasicRefreshCallback(nfcTile));
+                      parent.addView(nfcTile);
+                      if (addMissing) nfcTile.setVisibility(View.GONE);
                   }
                } else if (Tile.LOCATION.toString().equals(tile.toString())) { // Location
                  // Location

@@ -111,8 +111,13 @@ import com.android.internal.statusbar.IStatusBarService;
 import com.android.internal.telephony.ITelephony;
 import com.android.internal.widget.PointerLocationView;
 import com.android.internal.util.omni.OmniTorchConstants;
-import com.android.internal.util.omni.DeviceUtils;
 import com.android.internal.util.omni.TaskUtils;
+
+import com.android.internal.util.omni.DeviceUtils;
+import static com.android.internal.util.omni.DeviceUtils.IMMERSIVE_MODE_OFF;
+import static com.android.internal.util.omni.DeviceUtils.IMMERSIVE_MODE_FULL;
+import static com.android.internal.util.omni.DeviceUtils.IMMERSIVE_MODE_HIDE_ONLY_NAVBAR;
+import static com.android.internal.util.omni.DeviceUtils.IMMERSIVE_MODE_HIDE_ONLY_STATUSBAR;
 
 import java.io.File;
 import java.io.FileReader;
@@ -423,8 +428,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // menu needs to be displayed.
     boolean mLastFocusNeedsMenu = false;
     // Immersive mode(s)
-    int mImmersiveModeStyle = 0;
-    boolean mStatusbarNotificationActivity = false;
+    int mImmersiveModeStyle = IMMERSIVE_MODE_OFF;
 
     FakeWindow mHideNavFakeWindow = null;
 
@@ -718,9 +722,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.NAVIGATION_BAR_WIDTH), false, this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.STATUSBAR_NOTIFICATION_ACTIVITY), false, this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.VIRTUAL_KEYS_HAPTIC_FEEDBACK), false, this,
@@ -1492,10 +1493,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR_DEFAULT,
                     UserHandle.USER_CURRENT);
             mImmersiveModeStyle = Settings.System.getIntForUser(resolver,
-                    Settings.System.IMMERSIVE_MODE, 0, UserHandle.USER_CURRENT);
-            mStatusbarNotificationActivity = Settings.System.getIntForUser(resolver,
-                    Settings.System.STATUSBAR_NOTIFICATION_ACTIVITY, 0,
-                    UserHandle.USER_CURRENT) != 0;
+                    Settings.System.IMMERSIVE_MODE, IMMERSIVE_MODE_OFF, UserHandle.USER_CURRENT);
 
             // Configure rotation lock.
             int userRotation = Settings.System.getIntForUser(resolver,
@@ -3951,18 +3949,20 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     }
 
     private int updateWindowManagerVisibilityFlagsForImmersiveModes(int vis) {
-        if (mImmersiveModeStyle != 0) {
+        if (mImmersiveModeStyle != IMMERSIVE_MODE_OFF) {
             vis |= FLAG_FULLSCREEN;
         }
         return vis;
     }
 
     private boolean immersiveModeHidesNavigationBar() {
-        return mImmersiveModeStyle == 1 || mImmersiveModeStyle == 2;
+        return (mImmersiveModeStyle == IMMERSIVE_MODE_FULL)
+              || (mImmersiveModeStyle == IMMERSIVE_MODE_HIDE_ONLY_NAVBAR);
     }
 
     private boolean immersiveModeHidesStatusBar() {
-        return (mImmersiveModeStyle == 1 || mImmersiveModeStyle == 3) && !mStatusbarNotificationActivity;
+        return (mImmersiveModeStyle == IMMERSIVE_MODE_FULL)
+              || (mImmersiveModeStyle == IMMERSIVE_MODE_HIDE_ONLY_STATUSBAR);
     }
 
     private void offsetInputMethodWindowLw(WindowState win) {
@@ -4702,7 +4702,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             case KeyEvent.KEYCODE_POWER: {
                 result &= ~ACTION_PASS_TO_USER;
                 if (down) {
-                    if (mImmersiveModeStyle == 0) {
+                    if (mImmersiveModeStyle == IMMERSIVE_MODE_OFF) {
                         mImmersiveModeConfirmation.onPowerKeyDown(isScreenOn, event.getDownTime(),
                                 isImmersiveMode(mLastSystemUiFlags));
                     }
@@ -6026,7 +6026,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         boolean oldImmersiveMode = isImmersiveMode(oldVis);
         boolean newImmersiveMode = isImmersiveMode(vis);
         if (win != null && oldImmersiveMode != newImmersiveMode) {
-            final String pkg = mImmersiveModeStyle != 0 ? "android" + mImmersiveModeStyle
+            final String pkg = mImmersiveModeStyle != IMMERSIVE_MODE_OFF ? "android" + mImmersiveModeStyle
                     : win.getOwningPackage();
             mImmersiveModeConfirmation.immersiveModeChanged(pkg, newImmersiveMode,
                     transientStatusBarAllowed);
