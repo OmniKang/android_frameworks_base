@@ -349,6 +349,11 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             mItems.add(
                 new ProfileChooseAction() {
                     public void onPress() {
+                        try {
+                            // Dismiss the lock screen when Settings starts.
+                            ActivityManagerNative.getDefault().dismissKeyguardOnNextActivity();
+                        } catch (RemoteException e) {
+                        }
                         createProfileDialog();
                     }
                     public boolean onLongPress() {
