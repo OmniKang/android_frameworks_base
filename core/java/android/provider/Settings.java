@@ -3989,6 +3989,18 @@ public final class Settings {
         public static final String LOCKSCREEN_NOTIFICATIONS_COLOR = "lockscreen_notifications_color";
 
         /**
+         * Disable 'data disabled due to roaming' notification
+         * @hide
+         */
+        public static final String SUPPRESS_DATADISCONNECTED_NOTIFICATION = "suppress_datadisconnected_notification";
+
+        /**
+         * Disable 'no service' notification
+         * @hide
+         */
+        public static final String SUPPRESS_NOSERVICE_NOTIFICATION = "suppress_noservice_notification";
+
+        /**
          * Should call status sounds be player
          *
          * @hide
