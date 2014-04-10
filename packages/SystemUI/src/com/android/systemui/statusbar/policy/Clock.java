@@ -252,9 +252,8 @@ public class Clock extends TextView implements DemoMode {
         if (mClockDateDisplay != CLOCK_DATE_DISPLAY_GONE) {
             Date now = new Date();
 
-            String clockDateFormat = Settings.System.getStringForUser(getContext().getContentResolver(),
-                    Settings.System.STATUSBAR_CLOCK_DATE_FORMAT
-                    , UserHandle.USER_CURRENT);
+            String clockDateFormat = Settings.System.getString(getContext().getContentResolver(),
+                    Settings.System.STATUSBAR_CLOCK_DATE_FORMAT);
 
             if (clockDateFormat == null || clockDateFormat.isEmpty()) {
                 // Set dateString to short uppercase Weekday (Default for AOKP) if empty
@@ -308,7 +307,7 @@ public class Clock extends TextView implements DemoMode {
         return formatted;
     }
 
-    public void updateSettings() {
+    protected void updateSettings() {
         ContentResolver resolver = mContext.getContentResolver();
 
         mShowClock = Settings.System.getIntForUser(resolver,

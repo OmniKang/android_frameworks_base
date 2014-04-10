@@ -337,7 +337,6 @@ public class KeyguardViewMediator {
         @Override
         public void onUserSwitchComplete(int userId) {
             mSwitchingUser = false;
-            mKeyguardViewManager.onUserSwitched();
         }
 
         @Override

@@ -23,7 +23,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.os.UserHandle;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -218,9 +217,8 @@ public class QuickSettingsContainerView extends FrameLayout {
     }
 
     public boolean isDynamicEnabled() {
-        int isEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.QUICK_SETTINGS_TILES_ROW, 1
-                , UserHandle.USER_CURRENT);
+        int isEnabled = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.QUICK_SETTINGS_TILES_ROW, 1);
         return (isEnabled == 1);
     }
 
@@ -233,9 +231,8 @@ public class QuickSettingsContainerView extends FrameLayout {
     }
 
     private int getTilesSize() {
-        String tileContainer = Settings.System.getStringForUser(mContext.getContentResolver(),
-                Settings.System.QUICK_SETTINGS_TILES
-                , UserHandle.USER_CURRENT);
+        String tileContainer = Settings.System.getString(mContext.getContentResolver(),
+                Settings.System.QUICK_SETTINGS_TILES);
         if (tileContainer == null) {
             tileContainer = QuickSettings.DEFAULT_TILES;
         }
@@ -244,9 +241,8 @@ public class QuickSettingsContainerView extends FrameLayout {
     }
 
     public void resetAllTiles() {
-        Settings.System.putStringForUser(mContext.getContentResolver(),
-                   Settings.System.QUICK_SETTINGS_TILES, QuickSettings.DEFAULT_TILES
-                   , UserHandle.USER_CURRENT);
+        Settings.System.putString(mContext.getContentResolver(),
+                   Settings.System.QUICK_SETTINGS_TILES, QuickSettings.DEFAULT_TILES);
     }
 
     public void setEditModeEnabled(boolean enabled) {
@@ -270,14 +266,12 @@ public class QuickSettingsContainerView extends FrameLayout {
         if(!enabled) { // Store modifications
             ContentResolver resolver = getContext().getContentResolver();
             if(!tiles.isEmpty()) {
-                Settings.System.putStringForUser(resolver,
+                Settings.System.putString(resolver,
                         Settings.System.QUICK_SETTINGS_TILES,
-                                TextUtils.join(QuickSettings.DELIMITER, tiles)
-                        , UserHandle.USER_CURRENT);
+                                TextUtils.join(QuickSettings.DELIMITER, tiles));
             } else { // No tiles
-                Settings.System.putStringForUser(resolver,
-                        Settings.System.QUICK_SETTINGS_TILES, QuickSettings.NO_TILES
-                        , UserHandle.USER_CURRENT);
+                Settings.System.putString(resolver,
+                        Settings.System.QUICK_SETTINGS_TILES, QuickSettings.NO_TILES);
             }
         }
     }

@@ -17,14 +17,14 @@
 package com.android.systemui.statusbar.phone;
 
 import android.content.Context;
-import android.content.ContentResolver;
-import android.database.ContentObserver;
 import android.os.Handler;
-import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.content.ContentResolver;
+import android.database.ContentObserver;
 
 import com.android.systemui.R;
 
@@ -51,10 +51,11 @@ public class IconMerger extends LinearLayout {
 
         mIconSize = context.getResources().getDimensionPixelSize(
                 R.dimen.status_bar_icon_size);
-        mTotalWidth = context.getResources().getDisplayMetrics().widthPixels;
-        mIconHPadding = context.getResources().getDimensionPixelSize(
-                R.dimen.status_bar_icon_padding);
 
+        mTotalWidth = mContext.getResources().getDisplayMetrics().widthPixels;
+
+        mIconHPadding = mContext.getResources().getDimensionPixelSize(
+                R.dimen.status_bar_icon_padding);
         if (DEBUG) {
             setBackgroundColor(0x800099FF);
         }
@@ -125,7 +126,8 @@ public class IconMerger extends LinearLayout {
         }
         final boolean overflowShown = (mMoreView.getVisibility() == View.VISIBLE);
         // let's assume we have one more slot if the more icon is already showing
-        // if (overflowShown) visibleChildren --;
+        //if (overflowShown) visibleChildren --;
+        //Log.d("maxwen", "getMeasuredWidth()="+getMeasuredWidth()+"getWidth()="+getWidth()+" mIconSize="+mIconSize);
         final boolean moreRequired = visibleChildren * (mIconSize + 2 * mIconHPadding) > mAvailWidth;
         if (moreRequired != overflowShown) {
             post(new Runnable() {
@@ -159,9 +161,8 @@ public class IconMerger extends LinearLayout {
     protected void updateSettings() {
         ContentResolver resolver = mContext.getContentResolver();
 
-        mShowCenterClock = Settings.System.getIntForUser(resolver,
-                Settings.System.STATUSBAR_CLOCK_STYLE, Clock.STYLE_CLOCK_RIGHT
-                , UserHandle.USER_CURRENT) == Clock.STYLE_CLOCK_CENTER;
+        mShowCenterClock = Settings.System.getInt(resolver,
+                Settings.System.STATUSBAR_CLOCK_STYLE, Clock.STYLE_CLOCK_RIGHT) == Clock.STYLE_CLOCK_CENTER;
 
         mIconHPadding = mContext.getResources().getDimensionPixelSize(
                 R.dimen.status_bar_icon_padding);
