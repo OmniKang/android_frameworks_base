@@ -196,14 +196,8 @@ public class KeyguardViewManager {
 
     private boolean shouldEnableScreenRotation() {
         Resources res = mContext.getResources();
-        final boolean configLockRotationValue = res.getBoolean(R.bool.config_enableLockScreenRotation);
-        boolean enableLockScreenRotation = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.LOCKSCREEN_ROTATION, configLockRotationValue ? 1 : 0) != 0;
-        boolean enableAccelerometerRotation = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.ACCELEROMETER_ROTATION, 0) != 0;
-
         return SystemProperties.getBoolean("lockscreen.rot_override",false)
-               || (enableLockScreenRotation && enableAccelerometerRotation);
+                || res.getBoolean(R.bool.config_enableLockScreenRotation);
     }
 
     private boolean shouldEnableTranslucentDecor() {
