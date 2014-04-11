@@ -78,4 +78,8 @@
     <!-- Kill app toast -->
     <string name="app_killed_message">App Killed</string>
 
+    <!-- Navigation bar IME navigation -->
+    <string name="accessibility_ime_navigation_left">Cursor left</string>
+    <string name="accessibility_ime_navigation_right">Cursor right</string>
+
 </resources>

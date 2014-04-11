@@ -101,7 +101,14 @@ public final class NavigationBarTransitions extends BarTransitions {
         }
         setKeyButtonViewQuiescentAlpha(mView.getLeftMenuButton(), alpha, animate);
         setKeyButtonViewQuiescentAlpha(mView.getRightMenuButton(), alpha, animate);
-        setKeyButtonViewQuiescentAlpha(mView.getCameraButton(), alpha, animate);
+
+        setKeyButtonViewQuiescentAlpha(mView.getLeftIMENavigationButton(), alpha, animate);
+        setKeyButtonViewQuiescentAlpha(mView.getRightIMENavigationButton(), alpha, animate);
+
+        setKeyButtonViewQuiescentAlpha(mView.getSearchLight(), KEYGUARD_QUIESCENT_ALPHA, animate);
+        setKeyButtonViewQuiescentAlpha(mView.getCameraButton(), KEYGUARD_QUIESCENT_ALPHA, animate);
+
+        applyBackButtonQuiescentAlpha(mode, animate);
 
         // apply to lights out
         applyLightsOut(mode == MODE_LIGHTS_OUT, animate, force);

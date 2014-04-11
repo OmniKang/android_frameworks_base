@@ -96,6 +96,18 @@ public class SlimActions {
             } else if (action.equals(ButtonsConstants.ACTION_MENU)) {
                 injectKeyDelayed(KeyEvent.KEYCODE_MENU, isLongpress, false);
                 return;
+            } else if (action.equals(ButtonsConstants.ACTION_IME_NAVIGATION_LEFT)) {
+                triggerVirtualKeypress(KeyEvent.KEYCODE_DPAD_LEFT, isLongpress);
+                return;
+            } else if (action.equals(ButtonsConstants.ACTION_IME_NAVIGATION_RIGHT)) {
+                triggerVirtualKeypress(KeyEvent.KEYCODE_DPAD_RIGHT, isLongpress);
+                return;
+            } else if (action.equals(ButtonsConstants.ACTION_IME_NAVIGATION_UP)) {
+                triggerVirtualKeypress(KeyEvent.KEYCODE_DPAD_UP, isLongpress);
+                return;
+            } else if (action.equals(ButtonsConstants.ACTION_IME_NAVIGATION_DOWN)) {
+                triggerVirtualKeypress(KeyEvent.KEYCODE_DPAD_DOWN, isLongpress);
+                return;
             } else if (action.equals(ButtonsConstants.ACTION_POWER_MENU)) {
                 injectKeyDelayed(KeyEvent.KEYCODE_POWER, isLongpress, true);
             } else if (action.equals(ButtonsConstants.ACTION_POWER)) {
@@ -272,54 +284,41 @@ public class SlimActions {
                 || action.equals(ButtonsConstants.ACTION_BACK)
                 || action.equals(ButtonsConstants.ACTION_SEARCH)
                 || action.equals(ButtonsConstants.ACTION_MENU)
-                || action.equals(ButtonsConstants.ACTION_POWER_MENU)
+                || action.equals(ButtonsConstants.ACTION_MENU_BIG)
                 || action.equals(ButtonsConstants.ACTION_NULL)) {
             return true;
         }
         return false;
     }
 
-    private static class H extends Handler {
-        public void handleMessage(Message m) {
-            final InputManager inputManager = InputManager.getInstance();
-            switch (m.what) {
-                case MSG_INJECT_KEY_DOWN:
-                    inputManager.injectInputEvent((KeyEvent) m.obj,
-                            InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
-                    break;
-                case MSG_INJECT_KEY_UP:
-                    inputManager.injectInputEvent((KeyEvent) m.obj,
-                            InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
-                    break;
-            }
+    public static void triggerVirtualKeypress(final int keyCode, boolean longpress) {
+        InputManager im = InputManager.getInstance();
+        long now = SystemClock.uptimeMillis();
+        int downflags = 0;
+        int upflags = 0;
+        if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT
+            || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT
+            || keyCode == KeyEvent.KEYCODE_DPAD_UP
+            || keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+            downflags = upflags = KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE;
+        } else {
+            downflags = upflags = KeyEvent.FLAG_FROM_SYSTEM | KeyEvent.FLAG_VIRTUAL_HARD_KEY;
         }
-    }
-    private static H mHandler = new H();
-
-    private static void injectKeyDelayed(int keyCode,
-            boolean longpress, boolean sendOnlyDownMessage) {
-        long when = SystemClock.uptimeMillis();
-        int downflags = KeyEvent.FLAG_FROM_SYSTEM | KeyEvent.FLAG_VIRTUAL_HARD_KEY;
         if (longpress) {
             downflags |= KeyEvent.FLAG_LONG_PRESS;
         }
-        mHandler.removeMessages(MSG_INJECT_KEY_DOWN);
-        mHandler.removeMessages(MSG_INJECT_KEY_UP);
 
-        KeyEvent down = new KeyEvent(when, when + 10, KeyEvent.ACTION_DOWN, keyCode, 0, 0,
-                KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
+        final KeyEvent downEvent = new KeyEvent(now, now, KeyEvent.ACTION_DOWN,
+                keyCode, 0, 0, KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
                 downflags,
                 InputDevice.SOURCE_KEYBOARD);
-        mHandler.sendMessageDelayed(Message.obtain(mHandler, MSG_INJECT_KEY_DOWN, down), 10);
+        im.injectInputEvent(downEvent, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
 
-        if (sendOnlyDownMessage) {
-            return;
-        }
-        KeyEvent up = new KeyEvent(when, when + 30, KeyEvent.ACTION_UP, keyCode, 0, 0,
-                KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
-                KeyEvent.FLAG_FROM_SYSTEM | KeyEvent.FLAG_VIRTUAL_HARD_KEY,
+        final KeyEvent upEvent = new KeyEvent(now, now, KeyEvent.ACTION_UP,
+                keyCode, 0, 0, KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
+                upflags,
                 InputDevice.SOURCE_KEYBOARD);
-        mHandler.sendMessageDelayed(Message.obtain(mHandler, MSG_INJECT_KEY_UP, up), 30);
+        im.injectInputEvent(upEvent, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
     }
 
 }
