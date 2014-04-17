@@ -40,6 +40,7 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.DropBoxManager;
 import android.os.IBinder;
@@ -48,7 +49,6 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.UserHandle;
-import android.os.Build.VERSION_CODES;
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.util.AndroidException;
@@ -3855,6 +3855,14 @@ public final class Settings {
          * @hide
          */
         public static final String QUICK_SETTINGS_RIBBON_TILES = "quick_settings_ribbon_tiles";
+
+        /**
+         * Quick Settings Quick access ribbon - show on bottom if true, top
+         * otherwise
+         *
+         * @hide
+         */
+        public static final String QS_QUICK_ACCESS_BOTTOM = "qs_quick_access_bottom";
 
         /**
          * Quick settings tiles linked

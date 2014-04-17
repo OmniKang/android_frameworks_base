@@ -84,6 +84,7 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewPropertyAnimator;
 import android.view.ViewStub;
@@ -129,7 +130,6 @@ import com.android.systemui.statusbar.policy.OnSizeChangedListener;
 import com.android.systemui.statusbar.policy.RotationLockController;
 
 import com.android.systemui.omni.StatusHeaderMachine;
-
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -254,6 +254,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     private QuickSettingsHorizontalScrollView mRibbonView;
     private QuickSettings mRibbonQS;
     private boolean mQuickAccessLayoutLinked;
+    private boolean mShowRibbonOnBottom = false;
     private TilesChangedObserver mTilesChangedObserver;
 
     // Brightness slider
@@ -500,6 +501,8 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                     Settings.System.QUICK_SETTINGS_LINKED_TILES), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.QUICK_SETTINGS_RIBBON_ENABLED), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.QS_QUICK_ACCESS_BOTTOM),false, this);
             update();
         }
 
@@ -750,12 +753,58 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         mRibbonQS = null;
     }
 
+    private void placeQuickSettings() {
+        if (mRibbonView == null)
+            return;
+        LinearLayout parent = (LinearLayout) mRibbonView.getParent();
+        LinearLayout bottom_bar = (LinearLayout) mStatusBarWindow
+                .findViewById(R.id.bottom_bar);
+        if (mShowRibbonOnBottom && !parent.equals(bottom_bar)) {
+            parent.removeView(mRibbonView);
+            bottom_bar.addView(mRibbonView);
+        } else if (!mShowRibbonOnBottom && parent.equals(bottom_bar)) {
+            LinearLayout main_layout = (LinearLayout) mStatusBarWindow
+                    .findViewById(R.id.main_layout);
+            parent.removeView(mRibbonView);
+            main_layout.addView(mRibbonView, 0);
+        } else
+            return;
+
+        setCarrierLabelMargin();
+    }
+
+    private void setCarrierLabelMargin() {
+        MarginLayoutParams lp = (MarginLayoutParams) mCarrierLabel.getLayoutParams();
+        lp.bottomMargin = mContext.getResources().getDimensionPixelSize(
+                R.dimen.close_handle_height);
+        if (mShowRibbonOnBottom && mRibbonView != null)
+            lp.bottomMargin += mRibbonView.getHeight();
+        mCarrierLabel.setLayoutParams(lp);
+    }
+
     private void inflateRibbon() {
         if (mRibbonView == null) {
             ViewStub ribbon_stub = (ViewStub) mStatusBarWindow.findViewById(R.id.ribbon_settings_stub);
             if (ribbon_stub != null) {
                 mRibbonView = (QuickSettingsHorizontalScrollView) ribbon_stub.inflate();
                 mRibbonView.setVisibility(View.VISIBLE);
+                // if we change the size we might have to update the margins
+                mRibbonView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                    @Override
+                    public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                            int oldLeft,
+                            int oldTop, int oldRight, int oldBottom) {
+                        if (bottom - top == oldBottom - oldTop)
+                            return;
+                        // We cannot call this in layout phase, so call it later
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                setCarrierLabelMargin();
+                            }
+                        });
+                    }
+                });
             }
         }
         if (mRibbonQS == null) {
@@ -769,6 +818,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                         mLocationController, mRotationLockController);
             }
         }
+        placeQuickSettings();
     }
 
     // ================================================================================
@@ -1127,6 +1177,8 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                           Settings.System.QUICK_SETTINGS_RIBBON_ENABLED, 1) != 0;
             mQuickAccessLayoutLinked = Settings.System.getInt(resolver,
                           Settings.System.QUICK_SETTINGS_LINKED_TILES, 0) == 1;
+            mShowRibbonOnBottom = Settings.System.getIntForUser(resolver,
+                          Settings.System.QS_QUICK_ACCESS_BOTTOM, 0, UserHandle.USER_CURRENT) == 1;
             if (mHasQuickAccessSettings) {
                 cleanupRibbon();
                 mRibbonView = null;
