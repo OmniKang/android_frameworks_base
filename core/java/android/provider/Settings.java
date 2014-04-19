@@ -4085,6 +4085,13 @@ public final class Settings {
         public static final String FORCE_SHOW_OVERFLOW_MENU = "force_show_overflow_menu";
 
         /**
+         * Enable handlign of oppo input event for camera flip (F1)
+         * and start camera app
+         * @hide
+         */
+        public static final String OPPO_CAMERA_FLIP_ENABLED = "oppo_camera_flip_enable";
+
+        /**
          * Show the pending notification counts as overlays on the status bar
          * @hide
          */
