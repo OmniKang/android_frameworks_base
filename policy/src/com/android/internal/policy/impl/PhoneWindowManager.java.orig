@@ -18,12 +18,14 @@ package com.android.internal.policy.impl;
 
 import android.app.Activity;
 import android.app.ActivityManager;
-import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.ActivityManagerNative;
 import android.app.AppOpsManager;
 import android.app.IUiModeManager;
+<<<<<<< HEAD
 import android.app.IActivityManager;
 import android.app.KeyguardManager;
+=======
+>>>>>>> parent of 4c90327... [1/2] Base: Forward port Long press back to kill app
 import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.app.StatusBarManager;
@@ -61,7 +63,6 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.Process;
 import android.os.PowerManager;
-import android.os.Process;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
@@ -725,16 +726,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.VIRTUAL_KEYS_HAPTIC_FEEDBACK), false, this,
                     UserHandle.USER_ALL);
-<<<<<<< HEAD
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.SOFT_BACK_KILL_APP_ENABLE), false, this,
-                    UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.ACCELEROMETER_ROTATION_ANGLES), false, this,
                     UserHandle.USER_ALL);
-=======
-
->>>>>>> parent of 2a7f6e1... [1/2] base: task utils and navigation bar
             updateSettings();
         }
 
@@ -2403,12 +2397,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             }
         }
 
+<<<<<<< HEAD
         // if a kill app is pending and we lift finger
         // stop the kill action
         if (mBackKillPending && !down) {
             mHandler.removeCallbacks(mKillTask);
         }
 
+=======
+>>>>>>> parent of 4c90327... [1/2] Base: Forward port Long press back to kill app
         // First we always handle the home key here, so applications
         // can never break it, although if keyguard is on, we do let
         // it handle it, because that gives us the correct 5 second

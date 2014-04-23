@@ -18,7 +18,6 @@ package com.android.internal.policy.impl;
 
 import android.app.Activity;
 import android.app.ActivityManager;
-import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.ActivityManagerNative;
 import android.app.AppOpsManager;
 import android.app.IUiModeManager;
@@ -61,7 +60,6 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.Process;
 import android.os.PowerManager;
-import android.os.Process;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
@@ -2394,12 +2392,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 }
                 return -1;
             }
-        }
-
-        // if a kill app is pending and we lift finger
-        // stop the kill action
-        if (mBackKillPending && !down) {
-            mHandler.removeCallbacks(mKillTask);
         }
 
         // First we always handle the home key here, so applications
