@@ -1006,7 +1006,6 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     void addWifiTile(QuickSettingsTileView view, RefreshCallback cb) {
         mWifiTile = view;
         mWifiCallback = cb;
-        refreshWifiTile();
     }
 
     void addWifiBackTile(QuickSettingsTileView view, RefreshCallback cb) {
@@ -1169,7 +1168,6 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         mWifiBackState.iconId = getWifiApEnabled() ? getWifiApTypeIcon() : wifiApIconId;
         mWifiBackState.label = getWifiApEnabled() ? getWifiApString() : wifiApString;
         mWifiBackState.connected = getWifiApEnabled();
-        refreshWifiTile();
         if (mWifiBackTile != null) {
             mWifiBackCallback.refreshView(mWifiBackTile, mWifiBackState);
         }
