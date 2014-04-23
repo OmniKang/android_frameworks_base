@@ -3820,6 +3820,25 @@ public final class Settings {
         public static final String NAV_BUTTONS = "nav_buttons";
 
         /**
+         * Only here for compatibility. REMOVE LATER!!!
+         *
+         * @hide
+         */
+        public static final String CUSTOM_STATUS_BAR_COLOR = "custom_status_bar_color";
+        public static final String DOUBLE_TAP_SLEEP_GESTURE = "double_tap_sleep_gesture";
+        public static final String STATUS_BAR_OPAQUE_COLOR = "status_bar_opaque_color";
+        public static final String STATUS_BAR_SEMI_TRANS_COLOR = "status_bar_semi_trans_color";
+        public static final String CUSTOM_SYSTEM_ICON_COLOR = "custom_system_icon_color";
+        public static final String SYSTEM_ICON_COLOR = "system_icon_color";
+        public static final String NAV_BUTTONS = "nav_buttons";
+        public static final String NAVIGATION_BAR_HEIGHT = "navigation_bar_height";
+        public static final String NAVIGATION_BAR_WIDTH = "navigation_bar_width";
+        public static final String SOFT_BACK_KILL_APP_ENABLE = "soft_back_kill_app_enable";
+        public static final String EMULATE_HW_MENU_KEY = "emulate_hw_menu_key";
+        public static final String FORCE_SHOW_OVERFLOW_MENU = "force_show_overflow_menu";
+
+
+        /**
          * Quick settings tiles to show on status bar
          * @hide
          */
