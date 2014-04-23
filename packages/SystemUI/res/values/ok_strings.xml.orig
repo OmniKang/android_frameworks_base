@@ -44,6 +44,18 @@
 
     <string name="wifi_ap_disabled">WiFi AP disabled</string>
     <string name="wifi_ap_enabled">WiFi AP enabled</string>
+<<<<<<< HEAD
+
+    <!-- Dialog title for navigation bar button selection -->
+    <string name="navbar_dialog_title">Choose action to assign</string>
+    <string name="navbar_home_button">Home button</string>
+    <string name="navbar_recent_button">Recent button</string>
+    <string name="navbar_search_button">Search button</string>
+    <string name="navbar_back_button">Back button</string>
+    <string name="navbar_empty_button">Empty button</string>
+    <string name="navbar_menu_conditional_button">Menu (autoHide) button</string>
+    <string name="navbar_menu_always_button">Menu (alwaysShow) button</string>
+    <string name="navbar_menu_big_button">Menu button</string>
 
     <!-- Development shortcut -->
     <string name="advanced_dev_option_wipe_app">Wipe app data</string>
@@ -75,4 +87,6 @@
     <!-- Title shown in recents popup for unlocking an app from being cleared -->
     <string name="status_bar_recent_unlock_item_title">Unlock</string>
 
+=======
+>>>>>>> parent of e4b4efb... [1/2] base: NavigationBar customization
 </resources>

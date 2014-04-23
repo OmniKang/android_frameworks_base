@@ -3813,19 +3813,6 @@ public final class Settings {
         public static final String NAV_BUTTONS = "nav_buttons";
 
         /**
-<<<<<<< HEAD
-         * Navigation bar height when it is on protrait
-         * @hide
-         */
-        public static final String NAVIGATION_BAR_HEIGHT = "navigation_bar_height";
-
-        /**
-         * Navigation bar height when it is on landscape at the right
-         * @hide
-         */
-        public static final String NAVIGATION_BAR_WIDTH = "navigation_bar_width";
-
-        /**
          * Quick settings tiles to show on status bar
          * @hide
          */
@@ -3864,8 +3851,6 @@ public final class Settings {
         public static final String QUICK_SETTINGS_RIBBON_ENABLED = "quick_settings_ribbon_enabled";
 
         /**
-=======
->>>>>>> parent of e16f12b... [1/2] Base: Navigation bar height/width
          * Volume key controls ringtone or media sound stream
          *
          * @hide
@@ -4042,6 +4027,7 @@ public final class Settings {
         public static final String CALL_END_SOUND = "call_end_sound";
 
         /**
+<<<<<<< HEAD
          * Forces formal text input.  1 to replace emoticon key with enter key.
          * @hide
          */
@@ -4050,6 +4036,10 @@ public final class Settings {
         /**
          * Enable handlign of oppo input event for camera flip (F1)
          * and start camera app
+=======
+         * Volume key controls ringtone or media sound stream
+         *
+>>>>>>> parent of e4b4efb... [1/2] base: NavigationBar customization
          * @hide
          */
         public static final String OPPO_CAMERA_FLIP_ENABLED = "oppo_camera_flip_enable";
