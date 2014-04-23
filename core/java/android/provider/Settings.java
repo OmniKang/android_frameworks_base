@@ -3825,7 +3825,6 @@ public final class Settings {
          * @hide
          */
         public static final String CUSTOM_STATUS_BAR_COLOR = "custom_status_bar_color";
-        public static final String DOUBLE_TAP_SLEEP_GESTURE = "double_tap_sleep_gesture";
         public static final String STATUS_BAR_OPAQUE_COLOR = "status_bar_opaque_color";
         public static final String STATUS_BAR_SEMI_TRANS_COLOR = "status_bar_semi_trans_color";
         public static final String CUSTOM_SYSTEM_ICON_COLOR = "custom_system_icon_color";
