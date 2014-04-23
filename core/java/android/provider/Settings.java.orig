@@ -3364,6 +3364,7 @@ public final class Settings {
         public static final String STATUS_BAR_BRIGHTNESS_CONTROL = "status_bar_brightness_control";
 
         /**
+<<<<<<< HEAD
          * Status bar color
          * @hide
          */
@@ -3381,15 +3382,8 @@ public final class Settings {
         public static final String STATUS_BAR_SEMI_TRANS_COLOR = "status_bar_semi_trans_color";
 
         /**
-         * Status icon color
-         * @hide
-         */
-        public static final String CUSTOM_SYSTEM_ICON_COLOR = "custom_system_icon_color";
-
-        /** @hide */
-        public static final String SYSTEM_ICON_COLOR = "system_icon_color";
-
-        /**
+=======
+>>>>>>> parent of 2cb9494... System bar color WIP
          * Whether national data roaming should be used.
          * @hide
          */
@@ -4071,7 +4065,6 @@ public final class Settings {
         public static final String SOFT_BACK_KILL_APP_ENABLE = "soft_back_kill_app_enable";
 
         /**
-<<<<<<< HEAD
          * Emulate existance of a menu key on devices that have only soft keys
          * Using a soft menu key will behave like if a hw menu is used
          * @hide
@@ -4099,8 +4092,6 @@ public final class Settings {
         public static final String SYSTEM_PROFILES_ENABLED = "system_profiles_enabled";
 
         /**
-=======
->>>>>>> parent of 2f59bf2... [1/2] Framework: Emulate KEYCODE_MENU from navbar
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *
