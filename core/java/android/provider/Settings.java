@@ -4052,26 +4052,6 @@ public final class Settings {
         public static final String FORMAL_TEXT_INPUT = "formal_text_input";
 
         /**
-         * Enable long press on back kill for soft buttons.
-         * @hide
-         */
-        public static final String SOFT_BACK_KILL_APP_ENABLE = "soft_back_kill_app_enable";
-
-        /**
-         * Emulate existance of a menu key on devices that have only soft keys
-         * Using a soft menu key will behave like if a hw menu is used
-         * @hide
-         */
-        public static final String EMULATE_HW_MENU_KEY = "emulate_hw_menu_key";
-
-        /**
-         * Force show overflow (3dot) menu for devices that have a hw menu key
-         * Can be used for custom button assignment and force soft key use-cases
-         * @hide
-         */
-        public static final String FORCE_SHOW_OVERFLOW_MENU = "force_show_overflow_menu";
-
-        /**
          * Enable handlign of oppo input event for camera flip (F1)
          * and start camera app
          * @hide

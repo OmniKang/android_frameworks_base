@@ -3364,26 +3364,12 @@ public final class Settings {
         public static final String STATUS_BAR_BRIGHTNESS_CONTROL = "status_bar_brightness_control";
 
         /**
-<<<<<<< HEAD
-         * Status bar color
-         * @hide
-         */
-        public static final String CUSTOM_STATUS_BAR_COLOR = "custom_status_bar_color";
-
-        /**
          * Enable statusbar double tap gesture on to put device to sleep
          * @hide
          */
         public static final String DOUBLE_TAP_SLEEP_GESTURE = "double_tap_sleep_gesture";
 
-        /** @hide */
-        public static final String STATUS_BAR_OPAQUE_COLOR = "status_bar_opaque_color";
-        /** @hide */
-        public static final String STATUS_BAR_SEMI_TRANS_COLOR = "status_bar_semi_trans_color";
-
         /**
-=======
->>>>>>> parent of 2cb9494... System bar color WIP
          * Whether national data roaming should be used.
          * @hide
          */
@@ -4059,6 +4045,7 @@ public final class Settings {
         public static final String FORMAL_TEXT_INPUT = "formal_text_input";
 
         /**
+<<<<<<< HEAD
          * Enable long press on back kill for soft buttons.
          * @hide
          */
@@ -4092,6 +4079,8 @@ public final class Settings {
         public static final String SYSTEM_PROFILES_ENABLED = "system_profiles_enabled";
 
         /**
+=======
+>>>>>>> parent of 2a7f6e1... [1/2] base: task utils and navigation bar
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *
