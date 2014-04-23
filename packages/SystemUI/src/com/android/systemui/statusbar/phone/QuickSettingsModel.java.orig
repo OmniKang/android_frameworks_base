@@ -1030,7 +1030,11 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
             }
         });
         mWifiBackCallback = cb;
+<<<<<<< HEAD
         mWifiBackCallback.refreshView(view, mWifiBackState);
+=======
+        mWifiCallback.refreshView(mWifiBackTile, mWifiBackState);
+>>>>>>> parent of 85545ed... Base: bring back Wifi tile activity indicator
     }
 
     private void setSoftapEnabled(boolean enable) {

@@ -18,53 +18,40 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="top">
-    <FrameLayout
-        android:id="@+id/wifi_images"
+    <ImageView
+        android:id="@+id/image"
         android:layout_marginTop="@dimen/qs_tile_margin_above_icon"
         android:layout_marginBottom="@dimen/qs_tile_margin_below_icon"
         android:layout_width="@dimen/qs_tile_icon_size"
         android:layout_height="@dimen/qs_tile_icon_size"
         android:layout_gravity="top|center_horizontal"
         android:layout_centerHorizontal="true"
-        >
-        <ImageView
-            android:id="@+id/wifi_image"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            />
-        <ProgressBar
-            android:id="@+id/wifi_loading"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:visibility="gone"
-            />
-    </FrameLayout>
+        android:scaleType="centerInside"
+        />
     <ImageView
-            android:id="@+id/wifi_activity_in"
+            android:id="@+id/activity_in"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_qs_wifi_in"
-            android:layout_toRightOf="@id/wifi_images"
-            android:layout_alignBottom="@id/wifi_images"
+            android:layout_toRightOf="@id/image"
+            android:layout_alignBottom="@id/image"
             />
     <ImageView
-            android:id="@+id/wifi_activity_out"
+            android:id="@+id/activity_out"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_qs_wifi_out"
-            android:layout_toRightOf="@id/wifi_images"
-            android:layout_alignBottom="@id/wifi_images"
+            android:layout_toRightOf="@id/image"
+            android:layout_alignBottom="@id/image"
             />
     <TextView
         style="@style/TextAppearance.QuickSettings.TileView"
-        android:id="@+id/wifi_textview"
+        android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top|center_horizontal"
         android:gravity="top|center_horizontal"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/wifi_images"
+        android:layout_below="@id/image" 
         />
 </RelativeLayout>
