@@ -3813,6 +3813,7 @@ public final class Settings {
         public static final String NAV_BUTTONS = "nav_buttons";
 
         /**
+<<<<<<< HEAD
          * Navigation bar height when it is on protrait
          * @hide
          */
@@ -3863,6 +3864,8 @@ public final class Settings {
         public static final String QUICK_SETTINGS_RIBBON_ENABLED = "quick_settings_ribbon_enabled";
 
         /**
+=======
+>>>>>>> parent of e16f12b... [1/2] Base: Navigation bar height/width
          * Volume key controls ringtone or media sound stream
          *
          * @hide
@@ -4045,27 +4048,6 @@ public final class Settings {
         public static final String FORMAL_TEXT_INPUT = "formal_text_input";
 
         /**
-<<<<<<< HEAD
-         * Enable long press on back kill for soft buttons.
-         * @hide
-         */
-        public static final String SOFT_BACK_KILL_APP_ENABLE = "soft_back_kill_app_enable";
-
-        /**
-         * Emulate existance of a menu key on devices that have only soft keys
-         * Using a soft menu key will behave like if a hw menu is used
-         * @hide
-         */
-        public static final String EMULATE_HW_MENU_KEY = "emulate_hw_menu_key";
-
-        /**
-         * Force show overflow (3dot) menu for devices that have a hw menu key
-         * Can be used for custom button assignment and force soft key use-cases
-         * @hide
-         */
-        public static final String FORCE_SHOW_OVERFLOW_MENU = "force_show_overflow_menu";
-
-        /**
          * Enable handlign of oppo input event for camera flip (F1)
          * and start camera app
          * @hide
@@ -4079,8 +4061,6 @@ public final class Settings {
         public static final String SYSTEM_PROFILES_ENABLED = "system_profiles_enabled";
 
         /**
-=======
->>>>>>> parent of 2a7f6e1... [1/2] base: task utils and navigation bar
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *
