@@ -3830,12 +3830,25 @@ public final class Settings {
         public static final String STATUS_BAR_SEMI_TRANS_COLOR = "status_bar_semi_trans_color";
         public static final String CUSTOM_SYSTEM_ICON_COLOR = "custom_system_icon_color";
         public static final String SYSTEM_ICON_COLOR = "system_icon_color";
-        public static final String NAV_BUTTONS = "nav_buttons";
         public static final String NAVIGATION_BAR_HEIGHT = "navigation_bar_height";
         public static final String NAVIGATION_BAR_WIDTH = "navigation_bar_width";
         public static final String SOFT_BACK_KILL_APP_ENABLE = "soft_back_kill_app_enable";
         public static final String EMULATE_HW_MENU_KEY = "emulate_hw_menu_key";
         public static final String FORCE_SHOW_OVERFLOW_MENU = "force_show_overflow_menu";
+
+        /**
+         * New Slim Strings
+         * 
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_CONFIG = "navigation_bar_config";
+        public static final String PIE_BUTTONS_CONFIG = "pie_buttons_config";
+        public static final String PIE_BUTTONS_CONFIG_SECOND_LAYER = "pie_buttons_config_second_layer";
+        public static final String NAVRING_CONFIG = "navring_config";
+        public static final String NOTIFICATION_SHORTCUTS_CONFIG = "notification_shortcuts_config";
+        public static final String NOTIFICATION_SHORTCUTS_COLOR = "notification_shortcuts_color";
+        public static final String NOTIFICATION_SHORTCUTS_COLOR_MODE = "notification_shortcuts_color_mode";
+        public static final String LOCKSCREEN_SHORTCUTS = "lockscreen_shortcuts";
 
 
         /**
