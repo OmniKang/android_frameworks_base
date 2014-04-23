@@ -415,16 +415,29 @@ public class NavigationBarView extends LinearLayout {
 
         mNavigationIconHints = hints;
 
+<<<<<<< HEAD
         ImageView button = (ImageView) mCurrentView.findViewWithTag(NavbarEditor.NAVBAR_BACK);
         if (button != null) {
             button.setImageDrawable(backAlt
+=======
+        ImageView backView = (ImageView) findViewWithTag(NavbarEditor.NAVBAR_BACK);
+        ImageView recentView = (ImageView) findViewWithTag(NavbarEditor.NAVBAR_RECENT);
+
+        if (backView != null) {
+            backView.setImageDrawable(backAlt
+>>>>>>> 9ff598d... [1/2] base: NavigationBar customization
                     ? (mVertical ? mBackAltLandIcon : mBackAltIcon)
                     : (mVertical ? mBackLandIcon : mBackIcon));
         }
 
+<<<<<<< HEAD
         button = (ImageView) mCurrentView.findViewWithTag(NavbarEditor.NAVBAR_RECENT);
         if (button != null) {
             button.setImageDrawable(mVertical ? mRecentLandIcon : mRecentIcon);
+=======
+        if (recentView != null) {
+            recentView.setImageDrawable(mVertical ? mRecentLandIcon : mRecentIcon);
+>>>>>>> 9ff598d... [1/2] base: NavigationBar customization
         }
 
         setDisabledFlags(mDisabledFlags, true);
