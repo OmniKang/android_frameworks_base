@@ -571,6 +571,28 @@ public class NotificationHostView extends FrameLayout {
     }
 
     private void setButtonDrawable() {
+<<<<<<< HEAD
+        IStatusBarService statusBar = null;
+        try {
+            statusBar = IStatusBarService.Stub.asInterface(
+                ServiceManager.getService(Context.STATUS_BAR_SERVICE));
+        } catch (Exception ex) {
+            Log.w(TAG, "Failed to get statusbar service!");
+            return;
+        }
+
+        if (statusBar != null) {
+            try {
+                if (mNotifications.size() == 0) {
+                    statusBar.setButtonDrawable(0, 0);
+                } else if (mShownNotifications == mNotifications.size()) {
+                    statusBar.setButtonDrawable(0, 2);
+                } else {
+                    statusBar.setButtonDrawable(0, 1);
+                }
+            } catch (Exception ex) {
+                Log.e(TAG, "Failed to set button drawable!");
+=======
         try {
             if (mNotifications.size() == 0) {
                 mStatusBar.setButtonDrawable(0, 0);
@@ -578,6 +600,7 @@ public class NotificationHostView extends FrameLayout {
                 mStatusBar.setButtonDrawable(0, 2);
             } else {
                 mStatusBar.setButtonDrawable(0, 1);
+>>>>>>> parent of 6a6d71c... Lockscreen Notifications: fix show/hide of show all button
             }
         }
     }
