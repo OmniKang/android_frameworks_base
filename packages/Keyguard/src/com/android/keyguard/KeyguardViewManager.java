@@ -751,9 +751,9 @@ public class KeyguardViewManager {
             mKeyguardView.dispatch(event);
         }
     }
-
+    
     public void dispatchButtonClick(int buttonId) {
-        mNotificationView.onButtonClick(buttonId);
+        mNotificationView.showAllNotifications();
     }
 
     public void launchCamera() {
