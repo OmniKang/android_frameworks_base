@@ -16,14 +16,7 @@
 
 package com.android.systemui.statusbar;
 
-import android.content.ContentResolver;
 import android.content.Context;
-import android.database.ContentObserver;
-import android.graphics.drawable.Drawable;
-import android.graphics.PorterDuff.Mode;
-import android.os.Handler;
-import android.os.UserHandle;
-import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -57,31 +50,6 @@ public class SignalClusterView
     ImageView mWifi, mMobile, mWifiActivity, mMobileActivity, mMobileType, mAirplane;
     View mSpacer;
 
-    private SettingsObserver mSettingsObserver;
-
-    private boolean mCustomColor;
-    private int systemColor;
-
-    protected class SettingsObserver extends ContentObserver {
-        SettingsObserver(Handler handler) {
-            super(handler);
-        }
-
-        void observe() {
-            ContentResolver resolver = mContext.getContentResolver();
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.CUSTOM_SYSTEM_ICON_COLOR), false, this, UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.SYSTEM_ICON_COLOR), false, this, UserHandle.USER_ALL);
-            updateSettings();
-        }
-
-        @Override
-        public void onChange(boolean selfChange) {
-            updateSettings();
-        }
-    }
-
     public SignalClusterView(Context context) {
         this(context, null);
     }
@@ -92,11 +60,6 @@ public class SignalClusterView
 
     public SignalClusterView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-
-        if (mSettingsObserver == null) {
-            mSettingsObserver = new SettingsObserver(new Handler());
-        }
-        mSettingsObserver.observe();
     }
 
     public void setNetworkController(NetworkController nc) {
@@ -212,13 +175,7 @@ public class SignalClusterView
         if (mWifiGroup == null) return;
 
         if (mWifiVisible) {
-            Drawable wifiBitmap = mContext.getResources().getDrawable(mWifiStrengthId);
-            if (mCustomColor) {
-                wifiBitmap.setColorFilter(systemColor, Mode.SRC_ATOP);
-            } else {
-                wifiBitmap.clearColorFilter();
-            }
-            mWifi.setImageDrawable(wifiBitmap);
+            mWifi.setImageResource(mWifiStrengthId);
             mWifiActivity.setImageResource(mWifiActivityId);
 
             mWifiGroup.setContentDescription(mWifiDescription);
@@ -233,16 +190,6 @@ public class SignalClusterView
                     mWifiStrengthId, mWifiActivityId));
 
         if (mMobileVisible && !mIsAirplaneMode) {
-            if (mMobileStrengthId != 0) {
-                Drawable mobileBitmap = mContext.getResources().getDrawable(mMobileStrengthId);
-                if (mCustomColor) {
-                    mobileBitmap.setColorFilter(systemColor, Mode.SRC_ATOP);
-                } else {
-                    mobileBitmap.clearColorFilter();
-                }
-                mMobile.setImageDrawable(mobileBitmap);
-            }
-
             mMobile.setImageResource(mMobileStrengthId);
             mMobileActivity.setImageResource(mMobileActivityId);
             mMobileType.setImageResource(mMobileTypeId);
@@ -254,15 +201,6 @@ public class SignalClusterView
         }
 
         if (mIsAirplaneMode) {
-            if (mAirplaneIconId != 0) {
-                Drawable AirplaneBitmap = mContext.getResources().getDrawable(mAirplaneIconId);
-                if (mCustomColor) {
-                    mAirplane.setColorFilter(systemColor, Mode.SRC_ATOP);
-                } else {
-                    mAirplane.clearColorFilter();
-                }
-                mAirplane.setImageDrawable(AirplaneBitmap);
-            }
             mAirplane.setImageResource(mAirplaneIconId);
             mAirplane.setVisibility(View.VISIBLE);
         } else {
@@ -282,16 +220,6 @@ public class SignalClusterView
 
         mMobileType.setVisibility(
                 !mWifiVisible ? View.VISIBLE : View.GONE);
-    }
-
-    private void updateSettings() {
-        ContentResolver resolver = mContext.getContentResolver();
-
-        mCustomColor = Settings.System.getIntForUser(resolver,
-                Settings.System.CUSTOM_SYSTEM_ICON_COLOR, 0, UserHandle.USER_CURRENT) == 1;
-        systemColor = Settings.System.getIntForUser(resolver,
-                Settings.System.SYSTEM_ICON_COLOR, -2, UserHandle.USER_CURRENT);
-        apply();
     }
 }
 
