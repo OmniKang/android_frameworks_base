@@ -703,6 +703,21 @@ public class ViewConfiguration {
      * @return true if a permanent menu key is present, false otherwise.
      */
     public boolean hasPermanentMenuKey() {
+<<<<<<< HEAD
+        boolean forceShowMenu = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.FORCE_SHOW_OVERFLOW_MENU, sHasHwMenuKey ? 0 : 1) == 1;
+
+        boolean emulateHwMenuKey = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.EMULATE_HW_MENU_KEY, 0) == 1;
+
+        if (forceShowMenu && sHasPermanentMenuKey){
+            return false;
+        }
+        if (emulateHwMenuKey){
+            return true;
+        }
+=======
+>>>>>>> parent of 2f59bf2... [1/2] Framework: Emulate KEYCODE_MENU from navbar
         return sHasPermanentMenuKey;
     }
 
