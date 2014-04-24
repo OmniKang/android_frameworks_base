@@ -104,14 +104,6 @@ public class TvStatusBar extends BaseStatusBar {
     public void toggleQSShade() {
     }
 
-    @Override // CommandQueue
-    public void toggleNotificationShade() {
-    }
-
-    @Override // CommandQueue
-    public void toggleQSShade() {
-    }
-
     @Override
     protected void createAndAddWindows() {
     }

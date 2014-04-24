@@ -44,7 +44,7 @@ public class DeviceUtils {
     private static final String SETTINGS_METADATA_NAME = "com.android.settings";
 
     // Device types
-    private static final int DEVICE_PHONE  = 0;
+    private static final int DEVICE_PHONE = 0;
     private static final int DEVICE_HYBRID = 1;
     private static final int DEVICE_TABLET = 2;
 
@@ -78,11 +78,6 @@ public class DeviceUtils {
 
     public static boolean deviceSupportsNfc(Context context) {
         return NfcAdapter.getDefaultAdapter(context) != null;
-    }
-
-    public static class FilteredDeviceFeaturesArray {
-        public String[] entries;
-        public String[] values;
     }
 
     public static boolean deviceSupportsLteCdma(Context context) {
@@ -124,6 +119,46 @@ public class DeviceUtils {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static FilteredDeviceFeaturesArray filterUnsupportedDeviceFeatures(Context context,
+            String[] valuesArray, String[] entriesArray) {
+        if (valuesArray == null || entriesArray == null || context == null) {
+            return null;
+        }
+        List<String> finalEntries = new ArrayList<String>();
+        List<String> finalValues = new ArrayList<String>();
+        FilteredDeviceFeaturesArray filteredDeviceFeaturesArray =
+            new FilteredDeviceFeaturesArray();
+
+        for (int i = 0; i < valuesArray.length; i++) {
+            if (isSupportedFeature(context, valuesArray[i])) {
+                finalEntries.add(entriesArray[i]);
+                finalValues.add(valuesArray[i]);
+            }
+        }
+        filteredDeviceFeaturesArray.entries =
+            finalEntries.toArray(new String[finalEntries.size()]);
+        filteredDeviceFeaturesArray.values =
+            finalValues.toArray(new String[finalValues.size()]);
+        return filteredDeviceFeaturesArray;
+    }
+
+    private static boolean isSupportedFeature(Context context, String action) {
+        if (action.equals(ButtonsConstants.ACTION_VIB)
+                        && !deviceSupportsVibrator(context)
+                || action.equals(ButtonsConstants.ACTION_VIB_SILENT)
+                        && !deviceSupportsVibrator(context)
+                || action.equals(ButtonsConstants.ACTION_SMART_PULLDOWN)
+                        && isTablet(context)) {
+            return false;
+        }
+        return true;
+    }
+
+    public static class FilteredDeviceFeaturesArray {
+        public String[] entries;
+        public String[] values;
     }
 
     private static int getScreenType(Context con) {

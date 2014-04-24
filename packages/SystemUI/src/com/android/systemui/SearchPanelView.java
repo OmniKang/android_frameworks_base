@@ -44,6 +44,7 @@ import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.EventLog;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.HapticFeedbackConstants;
 import android.view.IWindowManager;
 import android.view.MotionEvent;
@@ -152,11 +153,15 @@ public class SearchPanelView extends FrameLayout implements
             if (target == -1) {
                 mHandler.removeCallbacks(SetLongPress);
                 mLongPress = false;
-            } else if (mLongList.get(target) != null
-                    && !mLongList.get(target).isEmpty()
-                    && !mLongList.get(target).equals(ButtonsConstants.ACTION_NULL)) {
-                mTarget = target;
-                mHandler.postDelayed(SetLongPress, ViewConfiguration.getLongPressTimeout());
+            } else {
+                if (mLongList.get(target) == null
+                    || mLongList.get(target).equals("")
+                    || mLongList.get(target).equals("none")) {
+                //pretend like nothing happened
+                } else {
+                    mTarget = target;
+                    mHandler.postDelayed(SetLongPress, ViewConfiguration.getLongPressTimeout());
+                }
             }
         }
 

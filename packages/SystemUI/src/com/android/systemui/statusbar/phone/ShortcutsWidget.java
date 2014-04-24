@@ -304,7 +304,6 @@ public class ShortcutsWidget extends LinearLayout {
                 layoutParams.setMargins(determinedMargin, 0, determinedMargin, mGetPxPadding);
 
                 iv.setLayoutParams(layoutParams);
-                iv.setBackgroundResource(R.drawable.notification_shortcut_bg);
                 iv.setLongClickable(true);
                 iv.setOnClickListener(new View.OnClickListener() {
                     @Override

@@ -2395,9 +2395,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                 updateCarrierAndWifiLabelVisibility(false);
             }
         }, FLIP_DURATION - 150);
-        if (mNotificationShortcutsIsActive) {
-            updateNotificationShortcutsVisibility(true);
-        }
         mNotificationPanelIsOpen = true;
         mQSPanelIsOpen = false;
     }

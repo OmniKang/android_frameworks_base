@@ -1608,8 +1608,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.System.NAVIGATION_BAR_CAN_MOVE,
                     mShortSizeDp < 600 ? 1 : 0, UserHandle.USER_CURRENT) == 1;
 
-            final int showByDefault = mContext.getResources().getBoolean(
-                    com.android.internal.R.bool.config_showNavigationBar) ? 1 : 0;
             mHasNavigationBar = Settings.System.getIntForUser(resolver,
                     Settings.System.NAVIGATION_BAR_SHOW, showByDefault,
                     UserHandle.USER_CURRENT) == 1;
