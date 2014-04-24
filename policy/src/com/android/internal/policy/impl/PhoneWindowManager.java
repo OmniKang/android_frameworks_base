@@ -2677,21 +2677,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                             // Do not perform action when key is released
                             mBackDoCustomAction = false;
                             return -1;
-                        } else if (mSoftBackKillApp) {
-                            // device with hardware key assigned to none and soft key back kill enabled
-                            // OR device with only soft keys and soft key back kill enabled
-                            if (!virtualKey){
-                                // ignore hard key press
-                                mBackDoCustomAction = false;
-                                return -1;
-                            } else {
-                                // handle soft key press
-                                performHapticFeedbackLw(null, HapticFeedbackConstants.LONG_PRESS, false);
-                                performKeyAction(KEY_ACTION_KILL_APP);
-                                // Do not perform action when key is released
-                                mBackDoCustomAction = false;
-                                return -1;
-                            }
                         }
                     }
                 }

@@ -48,10 +48,10 @@ import android.view.accessibility.AccessibilityManager.TouchExplorationStateChan
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import com.android.internal.widget.LockPatternUtils;
 import com.android.systemui.R;
 import com.android.systemui.statusbar.BaseStatusBar;
 import com.android.systemui.statusbar.DelegateViewHelper;
+import com.android.systemui.statusbar.policy.KeyButtonView;
 import com.android.systemui.statusbar.policy.DeadZone;
 
 import java.io.FileDescriptor;
@@ -66,8 +66,6 @@ public class NavigationBarView extends LinearLayout {
     // slippery nav bar when everything is disabled, e.g. during setup
     final static boolean SLIPPERY_WHEN_DISABLED = true;
 
-    private NavBarReceiver mNavBarReceiver;
-    private LockPatternUtils mLockUtils;
     private OnClickListener mRecentsClickListener;
     private OnLongClickListener mRecentsLongClickListener;
     private OnTouchListener mRecentsPreloadListener;
@@ -136,8 +134,8 @@ public class NavigationBarView extends LinearLayout {
         public void onBackAltCleared() {
             // When dismissing ime during unlock, force the back button to run the same appearance
             // animation as home (if we catch this condition early enough).
-            View back = mCurrentView.findViewWithTag(NavbarEditor.NAVBAR_BACK);
-            View home = mCurrentView.findViewWithTag(NavbarEditor.NAVBAR_HOME);
+            View back = getBackButton();
+            View home = getHomeButton();
             if (!mBackTransitioning && back.getVisibility() == VISIBLE
                     && mHomeAppearing && home.getAlpha() == 0) {
                 back.setAlpha(0);
@@ -222,9 +220,6 @@ public class NavigationBarView extends LinearLayout {
 
         mCameraDisabledByDpm = isCameraDisabledByDpm();
         watchForDevicePolicyChanges();
-    }
-
-        mLockUtils = new LockPatternUtils(context);
     }
 
     private void watchForDevicePolicyChanges() {
@@ -341,13 +336,6 @@ public class NavigationBarView extends LinearLayout {
         }
 
         mNavigationIconHints = hints;
-
-        getBackButton().setAlpha(
-            (0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_NOP)) ? 0.5f : 1.0f);
-        getHomeButton().setAlpha(
-            (0 != (hints & StatusBarManager.NAVIGATION_HINT_HOME_NOP)) ? 0.5f : 1.0f);
-        getRecentsButton().setAlpha(
-            (0 != (hints & StatusBarManager.NAVIGATION_HINT_RECENT_NOP)) ? 0.5f : 1.0f);
 
         ((ImageView)getBackButton()).setImageDrawable(
             (0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT))
