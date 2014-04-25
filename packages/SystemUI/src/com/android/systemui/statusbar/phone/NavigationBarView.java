@@ -78,7 +78,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NavigationBarView extends LinearLayout implements BaseStatusBar.NavigationBarCallback {
+public class NavigationBarView extends LinearLayout {
     final static boolean DEBUG = false;
     final static String TAG = "PhoneStatusBar/NavigationBarView";
 
@@ -131,6 +131,7 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
     private int mNavBarButtonColor;
     private int mNavBarButtonColorMode;
     private boolean mAppIsBinded = false;
+    private boolean mAppIsMissing;
 
     private FrameLayout mRot0;
     private FrameLayout mRot90;
@@ -280,7 +281,6 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
 
         mLockPatternUtils = new LockPatternUtils(context);
 
-        disableCameraByUser();
         mCameraDisabledByDpm = isCameraDisabledByDpm();
         watchForDevicePolicyChanges();
 
@@ -820,8 +820,7 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
             && !((disabledFlags & View.STATUS_BAR_DISABLE_SEARCH) != 0);
         final View cameraButton = getCameraButton();
         if (cameraButton != null) {
-            setVisibleOrGone(cameraButton, shouldShowCamera && !mCameraDisabledByDpm
-                    && !mCameraDisabledByUser);
+            setVisibleOrGone(cameraButton, shouldShowCamera && !mCameraDisabledByDpm);
         }
 
         final boolean showSearch = disableHome && !disableSearch;
@@ -845,34 +844,6 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         if (view != null) {
             view.setVisibility(visible ? VISIBLE : GONE);
         }
-    }
-
-    protected void disableCameraByUser() {
-        Resources keyguardResources;
-        PackageManager pm = mContext.getPackageManager();
-        try {
-            keyguardResources = pm.getResourcesForApplication("com.android.keyguard");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-
-        final boolean cameraDefault = keyguardResources.getBoolean(
-                keyguardResources.getIdentifier(
-                "com.android.keyguard:bool/kg_enable_camera_default_widget", null, null));
-
-        final boolean widgetCarousel = Settings.System.getIntForUser(
-                mContext.getContentResolver(),
-                Settings.System.LOCKSCREEN_USE_WIDGET_CONTAINER_CAROUSEL, 0,
-                UserHandle.USER_CURRENT) == 1;
-
-        final boolean cameraWidget = Settings.System.getIntForUser(
-                mContext.getContentResolver(),
-                Settings.System.LOCKSCREEN_CAMERA_WIDGET,
-                cameraDefault ? 1 : 0,
-                UserHandle.USER_CURRENT) == 1;
-
-        mCameraDisabledByUser = !cameraWidget || widgetCarousel;
     }
 
     private boolean isCameraDisabledByDpm() {
