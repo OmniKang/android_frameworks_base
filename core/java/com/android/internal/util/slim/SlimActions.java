@@ -85,16 +85,17 @@ public class SlimActions {
 
             // process the actions
             if (action.equals(ButtonsConstants.ACTION_HOME)) {
-                injectKeyDelayed(KeyEvent.KEYCODE_HOME, isLongpress, false);
+                triggerVirtualKeypress(KeyEvent.KEYCODE_HOME, isLongpress);
                 return;
             } else if (action.equals(ButtonsConstants.ACTION_BACK)) {
-                injectKeyDelayed(KeyEvent.KEYCODE_BACK, isLongpress, false);
+                triggerVirtualKeypress(KeyEvent.KEYCODE_BACK, isLongpress);
                 return;
             } else if (action.equals(ButtonsConstants.ACTION_SEARCH)) {
-                injectKeyDelayed(KeyEvent.KEYCODE_SEARCH, isLongpress, false);
+                triggerVirtualKeypress(KeyEvent.KEYCODE_SEARCH, isLongpress);
                 return;
-            } else if (action.equals(ButtonsConstants.ACTION_MENU)) {
-                injectKeyDelayed(KeyEvent.KEYCODE_MENU, isLongpress, false);
+            } else if (action.equals(ButtonsConstants.ACTION_MENU)
+                    || action.equals(ButtonsConstants.ACTION_MENU_BIG)) {
+                triggerVirtualKeypress(KeyEvent.KEYCODE_MENU, isLongpress);
                 return;
             } else if (action.equals(ButtonsConstants.ACTION_IME_NAVIGATION_LEFT)) {
                 triggerVirtualKeypress(KeyEvent.KEYCODE_DPAD_LEFT, isLongpress);
@@ -109,7 +110,11 @@ public class SlimActions {
                 triggerVirtualKeypress(KeyEvent.KEYCODE_DPAD_DOWN, isLongpress);
                 return;
             } else if (action.equals(ButtonsConstants.ACTION_POWER_MENU)) {
-                injectKeyDelayed(KeyEvent.KEYCODE_POWER, isLongpress, true);
+                try {
+                    windowManagerService.toggleGlobalMenu();
+                } catch (RemoteException e) {
+                }
+                return;
             } else if (action.equals(ButtonsConstants.ACTION_POWER)) {
                 PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
                 pm.goToSleep(SystemClock.uptimeMillis());
