@@ -569,6 +569,31 @@ public class NotificationHostView extends FrameLayout {
         }
     }
 
+    private void setButtonDrawable() {
+        IStatusBarService statusBar = null;
+        try {
+            statusBar = IStatusBarService.Stub.asInterface(
+                ServiceManager.getService(Context.STATUS_BAR_SERVICE));
+        } catch (Exception ex) {
+            Log.w(TAG, "Failed to get statusbar service!");
+            return;
+        }
+
+        if (statusBar != null) {
+            try {
+                if (mNotifications.size() == 0) {
+                    statusBar.setButtonDrawable(0, 0);
+                } else if (mShownNotifications == mNotifications.size()) {
+                    statusBar.setButtonDrawable(0, 2);
+                } else {
+                    statusBar.setButtonDrawable(0, 1);
+                }
+            } catch (Exception ex) {
+                Log.e(TAG, "Failed to set button drawable!");
+            }
+        }
+    }
+
     private void animateBackgroundColor(final int targetColor, final int duration) {
         if (!(getBackground() instanceof ColorDrawable)) {
             setBackgroundColor(0x0);
