@@ -283,11 +283,18 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     int mStatusBarHeight;
     WindowState mNavigationBar = null;
     boolean mHasNavigationBar = false;
+    boolean mOverWriteHasNavigationBar = false;
     boolean mCanHideNavigationBar = false;
     boolean mNavigationBarCanMove = false; // can the navigation bar ever move to the side?
     boolean mNavigationBarOnBottom = true; // is the navigation bar on the bottom *right now*?
     int[] mNavigationBarHeightForRotation = new int[4];
     int[] mNavigationBarWidthForRotation = new int[4];
+    int mNavigationBarHeight;
+    int mNavigationBarHeightLandscape;
+    int mNavigationBarWidth;
+
+    private int mExpandedDesktopMode;
+    private boolean mClearedBecauseOfForceShow;
 
     WindowState mKeyguard = null;
     KeyguardServiceDelegate mKeyguardDelegate;
@@ -467,30 +474,23 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean mAppSwitchLongPressed;
     boolean mHomeDoubleTapPending;
     boolean mVirtualKeysHapticFeedback = true;
+    boolean mMenuPressed;
+    boolean mMenuConsumed;
+    boolean mMenuDoubleTapPending;
+    boolean mBackPressed;
+    boolean mBackConsumed;
+    boolean mBackDoubleTapPending;
+    boolean mAppSwitchPressed;
+    boolean mAppSwitchConsumed;
+    boolean mAppSwitchDoubleTapPending;
+    boolean mAssistPressed;
+    boolean mAssistConsumed;
+    boolean mAssistDoubleTapPending;
     Intent mHomeIntent;
     Intent mCarDockIntent;
     Intent mDeskDockIntent;
     boolean mSearchKeyShortcutPending;
     boolean mConsumeSearchKeyUp;
-    boolean mAssistKeyLongPressed;
-
-    // Used when key is pressed and performing non-default action
-    boolean mMenuDoCustomAction;
-    boolean mBackDoCustomAction;
-
-    // Tracks user-customisable behavior for certain key events
-    private int mPressOnHomeBehavior = -1;
-    private int mPressOnMenuBehavior = -1;
-    private int mLongPressOnMenuBehavior = -1;
-    private int mPressOnBackBehavior = -1;
-    private int mLongPressOnBackBehavior = -1;
-    private int mPressOnAssistBehavior = -1;
-    private int mLongPressOnAssistBehavior = -1;
-    private int mPressOnAppSwitchBehavior = -1;
-    private int mLongPressOnAppSwitchBehavior = -1;
-
-    // Tracks preloading of the recent apps screen
-    private boolean mRecentAppsPreloaded;
 
     // support for activating the lock screen while the screen is on
     boolean mAllowLockscreenWhenOn;
@@ -520,8 +520,22 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // What we do when the user long presses on home
     private int mLongPressOnHomeBehavior;
 
-    // What we do when the user double-taps on home
-    private int mDoubleTapOnHomeBehavior;
+    // Tracks user-customisable behavior for certain key events
+    private String mPressOnHomeBehavior = ButtonsConstants.ACTION_NULL;
+    private String mLongPressOnHomeBehavior = ButtonsConstants.ACTION_NULL;
+    private String mDoubleTapOnHomeBehavior = ButtonsConstants.ACTION_NULL;
+    private String mPressOnMenuBehavior = ButtonsConstants.ACTION_NULL;
+    private String mLongPressOnMenuBehavior = ButtonsConstants.ACTION_NULL;
+    private String mDoubleTapOnMenuBehavior = ButtonsConstants.ACTION_NULL;
+    private String mPressOnBackBehavior = ButtonsConstants.ACTION_NULL;
+    private String mLongPressOnBackBehavior = ButtonsConstants.ACTION_NULL;
+    private String mDoubleTapOnBackBehavior = ButtonsConstants.ACTION_NULL;
+    private String mPressOnAssistBehavior = ButtonsConstants.ACTION_NULL;
+    private String mLongPressOnAssistBehavior = ButtonsConstants.ACTION_NULL;
+    private String mDoubleTapOnAssistBehavior = ButtonsConstants.ACTION_NULL;
+    private String mPressOnAppSwitchBehavior = ButtonsConstants.ACTION_NULL;
+    private String mLongPressOnAppSwitchBehavior = ButtonsConstants.ACTION_NULL;
+    private String mDoubleTapOnAppSwitchBehavior = ButtonsConstants.ACTION_NULL;
 
     // Screenshot trigger states
     // Time to volume and power must be pressed within this interval of each other.
@@ -956,6 +970,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private void cancelPendingScreenrecordChordAction() {
         mHandler.removeCallbacks(mScreenrecordRunnable);
     }
+
+    private final Runnable mGlobalMenu = new Runnable() {
+        @Override
+        public void run() {
+            sendCloseSystemWindows(SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
+            showGlobalActionsDialog(false);
+        }
+    };
 
     private final Runnable mPowerLongPress = new Runnable() {
         @Override
