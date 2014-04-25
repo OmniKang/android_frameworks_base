@@ -817,6 +817,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     }
 
+    public int getCurrentNavigationBarSize() {
+    }
+
+
     /*
      * We always let the sensor be switched on by default except when
      * the user has explicitly disabled sensor based rotation or when the
