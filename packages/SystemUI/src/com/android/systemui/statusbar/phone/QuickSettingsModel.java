@@ -749,6 +749,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         refreshNfcTile();
         refreshRotationLockTile();
         refreshRssiTile();
+        refreshWifiTile();
         refreshLocationTile();
         refreshBackLocationTile();
         updateSleepState();
@@ -1173,6 +1174,13 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         }
     }
 
+    void refreshWifiTile() {
+        if (mWifiCallback == null) {
+            return;
+        }
+        mWifiCallback.refreshView(mWifiTile, mWifiState);
+    }
+
     String getWifiIpAddr() {
         WifiInfo wifiInfo = mWifiManager.getConnectionInfo();
         int ip = wifiInfo.getIpAddress();
@@ -1315,11 +1323,6 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
                 }
                 break;
         }
-    }
-
-    private boolean isWifiConnected() {
-        NetworkInfo network = (mCM != null) ? mCM.getNetworkInfo(ConnectivityManager.TYPE_WIFI) : null;
-        return network != null && network.isConnected();
     }
 
     public boolean isMobileDataEnabled() {
