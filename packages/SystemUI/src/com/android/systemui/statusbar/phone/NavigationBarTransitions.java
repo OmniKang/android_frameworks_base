@@ -108,8 +108,6 @@ public final class NavigationBarTransitions extends BarTransitions {
         setKeyButtonViewQuiescentAlpha(mView.getSearchLight(), KEYGUARD_QUIESCENT_ALPHA, animate);
         setKeyButtonViewQuiescentAlpha(mView.getCameraButton(), KEYGUARD_QUIESCENT_ALPHA, animate);
 
-        applyBackButtonQuiescentAlpha(mode, animate);
-
         // apply to lights out
         applyLightsOut(mode == MODE_LIGHTS_OUT, animate, force);
     }

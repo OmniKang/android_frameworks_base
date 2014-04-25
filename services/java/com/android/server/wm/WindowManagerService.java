@@ -10907,8 +10907,34 @@ public class WindowManagerService extends IWindowManager.Stub
         return mWindowMap;
     }
 
+    /* @hide */
+    @Override
+    public boolean expandedDesktopHidesNavigationBar() {
+        return mPolicy.expandedDesktopHidesNavigationBar();
+    }
+
+    /* @hide */
+    @Override
+    public boolean expandedDesktopHidesStatusBar() {
+        return mPolicy.expandedDesktopHidesStatusBar();
+    }
+
+    /* @hide */
+    @Override
+    public int getCurrentNavigationBarSize() {
+        return mPolicy.getCurrentNavigationBarSize();
+    }
+
+    /* @hide */
+    @Override
+    public void toggleGlobalMenu() {
+        mPolicy.toggleGlobalMenu();
+    }
+
+    /* @hide */
     @Override
     public void addSystemUIVisibilityFlag(int flag) {
         mLastStatusBarVisibility |= flag;
     }
+
 }

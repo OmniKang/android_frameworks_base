@@ -953,6 +953,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         mHandler.removeCallbacks(mScreenrecordRunnable);
     }
 
+    private final Runnable mGlobalMenu = new Runnable() {
+        @Override
+        public void run() {
+            sendCloseSystemWindows(SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
+            showGlobalActionsDialog();
+        }
+    };
+
     private final Runnable mPowerLongPress = new Runnable() {
         @Override
         public void run() {
@@ -1293,6 +1301,26 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         mPowerMenuReceiver = new PowerMenuReceiver(context);
         mPowerMenuReceiver.registerSelf();
+    }
+
+    /**
+     * Needed overrides of abstract methods
+     */
+
+    @Override
+    public int getCurrentNavigationBarSize() {
+        return 0;
+    }
+
+    @Override
+    public boolean expandedDesktopHidesStatusBar() {
+        return false;
+
+    }
+
+    @Override
+    public boolean expandedDesktopHidesNavigationBar() {
+        return false;
     }
 
     private void updateKeyAssignments() {
@@ -6484,4 +6512,5 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         mContext.startActivityAsUser(intent, UserHandle.CURRENT);
         mStartCameraFromGesture = false;
     }
+
 }
