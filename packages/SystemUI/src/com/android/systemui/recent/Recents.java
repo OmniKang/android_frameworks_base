@@ -129,7 +129,7 @@ public class Recents extends SystemUI implements RecentsComponent {
 
 
                 DisplayMetrics dm = new DisplayMetrics();
-                if (expandedDesktopHidesNavBar) {
+                if (expandedDesktopHidesNavigationBar) {
                     display.getRealMetrics(dm);
                 } else {
                     display.getMetrics(dm);
