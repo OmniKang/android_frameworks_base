@@ -105,6 +105,7 @@ import static com.android.internal.util.omni.DeviceUtils.IMMERSIVE_MODE_FULL;
 import static com.android.internal.util.omni.DeviceUtils.IMMERSIVE_MODE_HIDE_ONLY_NAVBAR;
 import static com.android.internal.util.omni.DeviceUtils.IMMERSIVE_MODE_HIDE_ONLY_STATUSBAR;
 
+import com.android.internal.util.slim.ButtonConfig;
 import com.android.internal.util.slim.DeviceUtils;
 import com.android.systemui.R;
 import com.android.systemui.RecentsComponent;
@@ -803,7 +804,8 @@ public abstract class BaseStatusBar extends SystemUI implements
     protected abstract WindowManager.LayoutParams getSearchLayoutParams(
             LayoutParams layoutParams);
 
-    protected void updateSearchPanel() {
+    protected void updateSearchPanel(boolean navigationBarCanMove,
+            ArrayList<ButtonConfig> buttonConfig) {
         // Search Panel
         boolean visible = false;
         if (mSearchPanelView != null) {
@@ -814,17 +816,17 @@ public abstract class BaseStatusBar extends SystemUI implements
         // Provide SearchPanel with a temporary parent to allow layout params to work.
         LinearLayout tmpRoot = new LinearLayout(mContext);
 
-        boolean navbarCanMove = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NAVIGATION_BAR_CAN_MOVE,
-                DeviceUtils.isPhone(mContext) ? 1 : 0, UserHandle.USER_CURRENT) == 1;
-
-        if (!isScreenPortrait() && !navbarCanMove) {
+        if (!isScreenPortrait() && !navigationBarCanMove) {
             mSearchPanelView = (SearchPanelView) LayoutInflater.from(mContext).inflate(
                     R.layout.status_bar_search_panel_real_landscape, tmpRoot, false);
         } else {
             mSearchPanelView = (SearchPanelView) LayoutInflater.from(mContext).inflate(
                     R.layout.status_bar_search_panel, tmpRoot, false);
         }
+
+        mSearchPanelView.setNavigationBarCanMove(navigationBarCanMove);
+        mSearchPanelView.setNavigationRingConfig(buttonConfig);
+        mSearchPanelView.setDrawables();
 
         mSearchPanelView.setOnTouchListener(
                  new TouchOutsideListener(MSG_CLOSE_SEARCH_PANEL, mSearchPanelView));
