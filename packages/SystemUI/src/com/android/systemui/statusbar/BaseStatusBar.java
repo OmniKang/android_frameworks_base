@@ -1675,14 +1675,6 @@ public abstract class BaseStatusBar extends SystemUI implements
         }
     }
 
-    @Override
-    public void setPieTriggerMask(int newMask, boolean lock) {
-        int msg = MSG_SET_PIE_TRIGGER_MASK;
-        mHandler.removeMessages(msg);
-        mHandler.obtainMessage(MSG_SET_PIE_TRIGGER_MASK,
-                newMask, lock ? 1 : 0, null).sendToTarget();
-    }
-
     protected static void setSystemUIVisibility(View v, int visibility) {
         v.setSystemUiVisibility(visibility);
     }
@@ -1698,6 +1690,19 @@ public abstract class BaseStatusBar extends SystemUI implements
     protected void removeActiveDisplayView() {
         if (mActiveDisplayView != null) {
             mWindowManager.removeView(mActiveDisplayView);
+        }
+    }
+
+    // Pie Controls
+    public void updatePieTriggerMask(int newMask, boolean lock) {
+        if (mPieController != null) {
+            mPieController.updatePieTriggerMask(newMask, lock);
+        }
+    }
+
+    public void restorePieTriggerMask() {
+        if (mPieController != null) {
+            mPieController.restorePieTriggerMask();
         }
     }
 
