@@ -538,15 +538,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                 if (mSearchPanelView != null) {
                     mSearchPanelView.updateSettings();
                 }
-            } else if (uri.equals(Settings.System.getUriFor(
-                    Settings.System.NOTIFICATION_SHORTCUTS_CONFIG))
-                || uri.equals(Settings.System.getUriFor(
-                    Settings.System.NOTIFICATION_SHORTCUTS_COLOR))
-                || uri.equals(Settings.System.getUriFor(
-                    Settings.System.NOTIFICATION_SHORTCUTS_COLOR_MODE))) {
-                if (mNotificationShortcutsLayout != null) {
-                    mNotificationShortcutsLayout.updateShortcuts();
-                }
             }
         }
 
@@ -3736,10 +3727,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
                 if (mSearchPanelView != null && mSearchPanelView.hasAppBinded()) {
                     mSearchPanelView.updateSettings();
-                }
-                if (mNotificationShortcutsLayout != null
-                        && mNotificationShortcutsLayout.hasAppBinded()) {
-                    mNotificationShortcutsLayout.updateShortcuts();
                 }
                 if (mNavigationBarView != null && mNavigationBarView.hasAppBinded()) {
                     mNavigationBarView.recreateNavigationBar();

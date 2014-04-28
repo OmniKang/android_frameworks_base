@@ -53,7 +53,7 @@ public class Recents extends SystemUI implements RecentsComponent {
     }
 
     @Override
-    public void toggleRecents(Display display, int layoutDirection, View statusBarView) {
+    public void toggleRecents(Display display, int layoutDirection, View statusBarView, int immersiveModeStyle) {
         if (DEBUG) Log.d(TAG, "toggle recents panel");
         try {
             TaskDescription firstTask = RecentTasksLoader.getInstance(mContext).getFirstTask();
@@ -129,6 +129,11 @@ public class Recents extends SystemUI implements RecentsComponent {
 
 
                 DisplayMetrics dm = new DisplayMetrics();
+                if (expandedDesktopHidesNavBar) {
+                    display.getRealMetrics(dm);
+                } else {
+                    display.getMetrics(dm);
+                }
                 display.getMetrics(dm);
                 // calculate it here, but consider moving it elsewhere
                 // first, determine which orientation you're in.
