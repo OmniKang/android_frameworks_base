@@ -223,6 +223,7 @@ public abstract class BaseStatusBar extends SystemUI implements
     private ArrayList<NavigationBarCallback> mNavigationCallbacks =
             new ArrayList<NavigationBarCallback>();
 
+    protected NavigationBarOverlay mNavigationBarOverlay;
 
     // UI-specific methods
 
