@@ -3930,7 +3930,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             }
             loadDimens();
         }
-        loadDimens();
         // check for orientation change and update only the container layout
         // for all other configuration changes update complete QS
         int orientation = res.getConfiguration().orientation;
@@ -3947,8 +3946,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                 mRibbonQS.updateResources();
             }
         }
-
-        loadDimens();
     }
 
     private final Runnable mQuickSettingsUpdater= new Runnable() {
