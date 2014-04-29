@@ -36,6 +36,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.UserInfo;
 import android.database.ContentObserver;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
@@ -53,6 +54,7 @@ import android.os.Vibrator;
 import android.provider.Settings;
 import android.service.dreams.DreamService;
 import android.service.dreams.IDreamManager;
+import android.service.gesture.IEdgeGestureService;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
@@ -104,6 +106,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     private final WindowManagerFuncs mWindowManagerFuncs;
     private final AudioManager mAudioManager;
     private final IDreamManager mDreamManager;
+    private IEdgeGestureService mEdgeGestureService;
+    private Object mServiceAquireLock = new Object();
 
     private ArrayList<Action> mItems;
     private GlobalActionsDialog mDialog;
@@ -147,14 +151,14 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         filter.addAction(TelephonyIntents.ACTION_EMERGENCY_CALLBACK_MODE_CHANGED);
         context.registerReceiver(mBroadcastReceiver, filter);
 
+        ConnectivityManager cm = (ConnectivityManager)
+                context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        mHasTelephony = cm.isNetworkSupported(ConnectivityManager.TYPE_MOBILE);
+
         // get notified of phone state changes
         TelephonyManager telephonyManager =
                 (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         telephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_SERVICE_STATE);
-        mConnectivityManager = (ConnectivityManager)
-                context.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        mHasTelephony = mConnectivityManager.isNetworkSupported(ConnectivityManager.TYPE_MOBILE);
         mContext.getContentResolver().registerContentObserver(
                 Settings.Global.getUriFor(Settings.Global.AIRPLANE_MODE_ON), true,
                 mAirplaneModeObserver);
