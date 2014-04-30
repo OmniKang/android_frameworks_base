@@ -87,6 +87,15 @@ import java.util.UUID;
  */
 import android.content.ServiceConnection;
 import android.content.ComponentName;
+
+import com.android.internal.statusbar.IStatusBarService;
+import com.android.internal.util.slim.ButtonConfig;
+import com.android.internal.util.slim.ImageHelper;
+import com.android.internal.util.slim.PolicyConstants;
+import com.android.internal.util.slim.PolicyHelper;
+import com.android.internal.util.slim.SlimActions;
+
+
 import android.os.IBinder;
 import android.os.Messenger;
 
@@ -133,6 +142,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     private final boolean mShowSilentToggle;
     private final boolean mShowScreenRecord;
     private ConnectivityManager mConnectivityManager;
+
+    private static int mTextColor;
 
     /**
      * @param context everything needs a context :(
@@ -204,8 +215,25 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     }
 
     private void handleShow() {
+        //mTextColor = Settings.System.getIntForUser(
+        //        mContext.getContentResolver(),
+        //        Settings.System.POWER_MENU_TEXT_COLOR, -2,
+        //        UserHandle.USER_CURRENT);
+        //if (mTextColor == -2) {
+            mTextColor = mContext.getResources().getColor(
+                com.android.internal.R.color.power_menu_icon_default_color);
+        //}
+
         awakenIfNecessary();
         prepareDialog();
+
+        final IStatusBarService barService = IStatusBarService.Stub.asInterface(
+                ServiceManager.getService(Context.STATUS_BAR_SERVICE));
+        try {
+            barService.collapsePanels();
+        } catch (RemoteException ex) {
+            // bad bad
+        }
 
         WindowManager.LayoutParams attrs = mDialog.getWindow().getAttributes();
         attrs.setTitle("GlobalActions");
@@ -219,6 +247,11 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
      * @return A new dialog.
      */
     private GlobalActionsDialog createDialog() {
+        ArrayList<ButtonConfig> powerMenuConfig =
+                PolicyHelper.getPowerMenuConfigWithDescription(
+                mContext, "shortcut_action_power_menu_values",
+                "shortcut_action_power_menu_entries");
+
         // Simple toggle style if there's no vibrator, otherwise use a tri-state
         if (!mHasVibrator) {
             mSilentModeAction = new SilentModeToggleAction();
@@ -583,18 +616,6 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                             return true;
                         }
                     });
-            // airplane mode
-            } else if (config.getClickAction().equals(PolicyConstants.ACTION_AIRPLANE)) {
-                constructAirPlaneModeToggle(PolicyHelper.getPowerMenuIconImage(mContext,
-                            config.getClickAction(), config.getIcon(), true),
-                            config.getClickActionDescription());
-                mItems.add(mAirplaneModeOn);
-            // expanded desktop mode
-            } else if (config.getClickAction().equals(PolicyConstants.ACTION_EXPANDED_DESKTOP)) {
-                constructExpandedDesktopToggle(PolicyHelper.getPowerMenuIconImage(mContext,
-                            config.getClickAction(), config.getIcon(), true),
-                            config.getClickActionDescription());
-                mItems.add(mExpandDesktopModeOn);
             // Pie controls
             } else if (config.getClickAction().equals(PolicyConstants.ACTION_PIE)) {
                 constructPieToggle(PolicyHelper.getPowerMenuIconImage(mContext,
@@ -958,6 +979,16 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         // dialog shows up
         mSettingsObserver.observe();
 
+        // Global menu is showing. Notify EdgeGestureService.
+        IEdgeGestureService edgeGestureService = getEdgeGestureService();
+        try {
+            if (edgeGestureService != null) {
+                edgeGestureService.setOverwriteImeIsActive(true);
+            }
+        } catch (RemoteException e) {
+             mEdgeGestureService = null;
+        }
+
         mAdapter.notifyDataSetChanged();
         mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
 
@@ -987,6 +1018,15 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 // ignore this
                 Log.w(TAG, ie);
             }
+        }
+        // Global menu dismiss. Notify EdgeGestureService.
+        IEdgeGestureService edgeGestureService = getEdgeGestureService();
+        try {
+            if (edgeGestureService != null) {
+                edgeGestureService.setOverwriteImeIsActive(false);
+            }
+        } catch (RemoteException e) {
+             mEdgeGestureService = null;
         }
         mContext.getContentResolver().unregisterContentObserver(mSettingsObserver);
     }
@@ -1124,6 +1164,13 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             mIcon = icon;
         }
 
+        protected SinglePressAction(Drawable icon, CharSequence message) {
+            mIconResId = 0;
+            mMessageResId = 0;
+            mMessage = message;
+            mIcon = icon;
+        }
+
         protected SinglePressAction(int iconResId, CharSequence message) {
             mIconResId = iconResId;
             mMessageResId = 0;
@@ -1151,7 +1198,9 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             v.findViewById(R.id.status).setVisibility(View.GONE);
             if (mIcon != null) {
                 icon.setImageDrawable(mIcon);
-                icon.setScaleType(ScaleType.CENTER_CROP);
+                if (mIconResId != 0) {
+                    icon.setScaleType(ScaleType.CENTER_CROP);
+                }
             } else if (mIconResId != 0) {
                 icon.setImageDrawable(context.getResources().getDrawable(mIconResId));
             }
@@ -1160,6 +1209,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             } else {
                 messageView.setText(mMessageResId);
             }
+            messageView.setTextColor(mTextColor);
 
             return v;
         }
@@ -1231,11 +1281,15 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         protected State mState = State.Off;
 
         // prefs
+        protected Drawable mEnabledIcon;
+        protected Drawable mDisabledIcon;
+        protected String mMessage;
+        protected int mEnabledStatusMessageResId;
+        protected int mDisabledStatusMessageResId;
+
         protected int mEnabledIconResId;
         protected int mDisabledIconResid;
         protected int mMessageResId;
-        protected int mEnabledStatusMessageResId;
-        protected int mDisabledStatusMessageResId;
 
         /**
          * @param enabledIconResId The icon for when this action is on.
@@ -1243,6 +1297,21 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
          * @param essage The general information message, e.g 'Silent Mode'
          * @param enabledStatusMessageResId The on status message, e.g 'sound disabled'
          * @param disabledStatusMessageResId The off status message, e.g. 'sound enabled'
+         */
+        public ToggleAction(Drawable enabledIcon,
+                Drawable disabledIcon,
+                String message,
+                int enabledStatusMessageResId,
+                int disabledStatusMessageResId) {
+            mEnabledIcon = enabledIcon;
+            mDisabledIcon = disabledIcon;
+            mMessage = message;
+            mEnabledStatusMessageResId = enabledStatusMessageResId;
+            mDisabledStatusMessageResId = disabledStatusMessageResId;
+        }
+
+        /**
+         * To be compatible with old code
          */
         public ToggleAction(int enabledIconResId,
                 int disabledIconResid,
@@ -1277,14 +1346,15 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             final boolean enabled = isEnabled();
 
             if (messageView != null) {
-                messageView.setText(mMessageResId);
+                messageView.setText(mMessage);
                 messageView.setEnabled(enabled);
+                messageView.setTextColor(mTextColor);
             }
 
             boolean on = ((mState == State.On) || (mState == State.TurningOn));
             if (icon != null) {
-                icon.setImageDrawable(context.getResources().getDrawable(
-                        (on ? mEnabledIconResId : mDisabledIconResid)));
+                icon.setImageDrawable(on ? mEnabledIcon : mDisabledIcon);
+                icon.setAlpha(on ? 1.0f : 0.3f);
                 icon.setEnabled(enabled);
             }
 
@@ -1292,6 +1362,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 statusView.setText(on ? mEnabledStatusMessageResId : mDisabledStatusMessageResId);
                 statusView.setVisibility(View.VISIBLE);
                 statusView.setEnabled(enabled);
+                statusView.setTextColor(mTextColor);
             }
             v.setEnabled(enabled);
 
@@ -1336,9 +1407,9 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private class SilentModeToggleAction extends ToggleAction {
         public SilentModeToggleAction() {
-            super(R.drawable.ic_audio_vol_mute,
-                    R.drawable.ic_audio_vol,
-                    R.string.global_action_toggle_silent_mode,
+            super(mContext.getResources().getDrawable(R.drawable.ic_audio_vol_mute),
+                    mContext.getResources().getDrawable(R.drawable.ic_audio_vol),
+                    mContext.getResources().getString(R.string.global_action_toggle_silent_mode),
                     R.string.global_action_silent_mode_on_status,
                     R.string.global_action_silent_mode_off_status);
         }
@@ -1363,6 +1434,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     private static class SilentModeTriStateAction implements Action, View.OnClickListener {
 
         private final int[] ITEM_IDS = { R.id.option1, R.id.option2, R.id.option3 };
+        private final int[] ICON_IDS = { R.id.icon1, R.id.icon2, R.id.icon3 };
 
         private final AudioManager mAudioManager;
         private final Handler mHandler;
@@ -1585,6 +1657,19 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         mContext.sendBroadcastAsUser(intent, UserHandle.ALL);
         if (!mHasTelephony) {
             mAirplaneState = on ? ToggleAction.State.On : ToggleAction.State.Off;
+        }
+    }
+
+    /**
+     * If not set till now get EdgeGestureService.
+     */
+    private IEdgeGestureService getEdgeGestureService() {
+        synchronized (mServiceAquireLock) {
+            if (mEdgeGestureService == null) {
+                mEdgeGestureService = IEdgeGestureService.Stub.asInterface(
+                            ServiceManager.getService("edgegestureservice"));
+            }
+            return mEdgeGestureService;
         }
     }
 
