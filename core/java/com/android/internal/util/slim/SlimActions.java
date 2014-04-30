@@ -19,6 +19,7 @@ package com.android.internal.util.slim;
 import android.app.Activity;
 import android.app.ActivityManagerNative;
 import android.app.SearchManager;
+import android.app.IUiModeManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -27,7 +28,6 @@ import android.hardware.input.InputManager;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
 import android.net.Uri;
-import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.RemoteException;
@@ -54,6 +54,12 @@ public class SlimActions {
     private static final int MSG_INJECT_KEY_UP = 1067;
 
     public static void processAction(Context context, String action, boolean isLongpress) {
+        processActionWithOptions(context, action, isLongpress, true);
+    }
+
+    public static void processActionWithOptions(Context context,
+            String action, boolean isLongpress, boolean collapseShade) {
+
             if (action == null || action.equals(ButtonsConstants.ACTION_NULL)) {
                 return;
             }
@@ -76,11 +82,16 @@ public class SlimActions {
             } catch (RemoteException e) {
             }
 
-            if (!action.equals(ButtonsConstants.ACTION_QS)
-                    && !action.equals(ButtonsConstants.ACTION_NOTIFICATIONS)) {
-                try {
-                    barService.collapsePanels();
-                } catch (RemoteException ex) {
+            if (collapseShade) {
+                if (!action.equals(ButtonsConstants.ACTION_QS)
+                        && !action.equals(ButtonsConstants.ACTION_NOTIFICATIONS)
+                        && !action.equals(ButtonsConstants.ACTION_SMART_PULLDOWN)
+                        && !action.equals(ButtonsConstants.ACTION_THEME_SWITCH)
+                        && !action.equals(ButtonsConstants.ACTION_TORCH)) {
+                    try {
+                        barService.collapsePanels();
+                    } catch (RemoteException ex) {
+                    }
                 }
             }
 
@@ -122,19 +133,12 @@ public class SlimActions {
                 return;
             } else if (action.equals(ButtonsConstants.ACTION_TORCH)) {
                 Intent i = new Intent(TorchConstants.ACTION_TOGGLE_STATE);
-                context.sendBroadcast(i);
+                context.sendBroadcastAsUser(i, new UserHandle(UserHandle.USER_CURRENT));
                 return;
-            } else if (action.equals(ButtonsConstants.ACTION_PIE)) {
-                boolean pieState = isPieEnabled(context);
-                if (pieState && !isNavBarEnabled(context) && isNavBarDefault(context)) {
-                    Toast.makeText(context,
-                            com.android.internal.R.string.disable_pie_navigation_error,
-                            Toast.LENGTH_LONG).show();
+            } else if (action.equals(ButtonsConstants.ACTION_IME)) {
+                if (isKeyguardShowing) {
                     return;
                 }
-<<<<<<< HEAD
-                Settings.System.putIntForUser(
-=======
                 context.sendBroadcastAsUser(
                         new Intent("android.settings.SHOW_INPUT_METHOD_PICKER"),
                         new UserHandle(UserHandle.USER_CURRENT));
@@ -165,40 +169,18 @@ public class SlimActions {
                         Settings.System.NAVIGATION_BAR_SHOW,
                         navBarState ? 0 : 1, UserHandle.USER_CURRENT);
                 return;
-            } else if (action.equals(ButtonsConstants.ACTION_EXPANDED_DESKTOP)) {
-                boolean expandDesktopModeOn = Settings.System.getIntForUser(
->>>>>>> 4097a17... Frameworks: Add user protection and pie/navbar toggle to SlimActions
-                        context.getContentResolver(),
-                        Settings.System.PIE_CONTROLS,
-                        pieState ? 0 : 1, UserHandle.USER_CURRENT);
-                return;
-            } else if (action.equals(ButtonsConstants.ACTION_NAVBAR)) {
-                boolean navBarState = isNavBarEnabled(context);
-                if (navBarState && !isPieEnabled(context) && isNavBarDefault(context)) {
-                    Toast.makeText(context,
-                            com.android.internal.R.string.disable_navigation_pie_error,
-                            Toast.LENGTH_LONG).show();
-                    return;
-                }
-                Settings.System.putIntForUser(
-                        context.getContentResolver(),
-                        Settings.System.NAVIGATION_BAR_SHOW,
-                        navBarState ? 0 : 1, UserHandle.USER_CURRENT);
-                return;
-            } else if (action.equals(ButtonsConstants.ACTION_IME)) {
-                if (isKeyguardShowing) {
-                    return;
-                }
-                context.sendBroadcast(new Intent("android.settings.SHOW_INPUT_METHOD_PICKER"));
-                return;
             } else if (action.equals(ButtonsConstants.ACTION_THEME_SWITCH)) {
-                boolean enabled = Settings.Secure.getIntForUser(
+                boolean autoLightMode = Settings.Secure.getIntForUser(
                         context.getContentResolver(),
                         Settings.Secure.UI_THEME_AUTO_MODE, 0,
-                        UserHandle.USER_CURRENT) != 1;
+                        UserHandle.USER_CURRENT) == 1;
                 boolean state = context.getResources().getConfiguration().uiThemeMode
                         == Configuration.UI_THEME_MODE_HOLO_DARK;
-                if (!enabled) {
+                if (autoLightMode) {
+                    try {
+                        barService.collapsePanels();
+                    } catch (RemoteException ex) {
+                    }
                     Toast.makeText(context,
                             com.android.internal.R.string.theme_auto_switch_mode_error,
                             Toast.LENGTH_LONG).show();
@@ -208,11 +190,14 @@ public class SlimActions {
                 // we currently switch between holodark and hololight till either
                 // theme engine is ready or lightheme is ready. Currently due of
                 // missing light themeing hololight = system base theme
-                Settings.Secure.putIntForUser(context.getContentResolver(),
-                        Settings.Secure.UI_THEME_MODE, state
+                final IUiModeManager uiModeManagerService = IUiModeManager.Stub.asInterface(
+                        ServiceManager.getService(Context.UI_MODE_SERVICE));
+                try {
+                    uiModeManagerService.setUiThemeMode(state
                             ? Configuration.UI_THEME_MODE_HOLO_LIGHT
-                            : Configuration.UI_THEME_MODE_HOLO_DARK,
-                        UserHandle.USER_CURRENT);
+                            : Configuration.UI_THEME_MODE_HOLO_DARK);
+                } catch (RemoteException e) {
+                }
                 return;
             } else if (action.equals(ButtonsConstants.ACTION_KILL)) {
                 if (isKeyguardShowing) {
@@ -273,6 +258,23 @@ public class SlimActions {
                     intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.google.com"));
                 }
                 startActivity(context, windowManagerService, isKeyguardShowing, intent);
+                return;
+            } else if (action.equals(ButtonsConstants.ACTION_VOICE_SEARCH)) {
+                // launch the search activity
+                Intent intent = new Intent(Intent.ACTION_SEARCH_LONG_PRESS);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                try {
+                    // TODO: This only stops the factory-installed search manager.
+                    // Need to formalize an API to handle others
+                    SearchManager searchManager =
+                            (SearchManager) context.getSystemService(Context.SEARCH_SERVICE);
+                    if (searchManager != null) {
+                        searchManager.stopSearch();
+                    }
+                startActivity(context, windowManagerService, isKeyguardShowing, intent);
+                } catch (ActivityNotFoundException e) {
+                    Log.e("SlimActions:", "No activity to handle assist long press action.", e);
+                }
                 return;
             } else if (action.equals(ButtonsConstants.ACTION_VIB)) {
                 AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
@@ -387,6 +389,48 @@ public class SlimActions {
         }
     }
 
+    public static void startIntent(Context context, Intent intent, boolean collapseShade) {
+        if (intent == null) {
+            return;
+        }
+        final IStatusBarService barService = IStatusBarService.Stub.asInterface(
+                ServiceManager.getService(Context.STATUS_BAR_SERVICE));
+
+        final IWindowManager windowManagerService = IWindowManager.Stub.asInterface(
+                ServiceManager.getService(Context.WINDOW_SERVICE));
+
+        boolean isKeyguardShowing = false;
+        try {
+            isKeyguardShowing = windowManagerService.isKeyguardLocked();
+        } catch (RemoteException e) {
+        }
+
+        if (collapseShade) {
+            try {
+                barService.collapsePanels();
+            } catch (RemoteException ex) {
+            }
+        }
+
+        if (isKeyguardShowing) {
+            // Have keyguard show the bouncer and launch the activity if the user succeeds.
+            try {
+                windowManagerService.showCustomIntentOnKeyguard(intent);
+            } catch (RemoteException e) {
+            }
+        } else {
+            // otherwise let us do it here
+            try {
+                ActivityManagerNative.getDefault().dismissKeyguardOnNextActivity();
+            } catch (RemoteException e) {
+                // too bad, so sad...
+            }
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivityAsUser(intent,
+                    new UserHandle(UserHandle.USER_CURRENT));
+        }
+    }
+
     public static boolean isActionKeyEvent(String action) {
         if (action.equals(ButtonsConstants.ACTION_HOME)
                 || action.equals(ButtonsConstants.ACTION_BACK)
@@ -399,7 +443,7 @@ public class SlimActions {
         return false;
     }
 
-    private static void triggerVirtualKeypress(final int keyCode, boolean longpress) {
+    public static void triggerVirtualKeypress(final int keyCode, boolean longpress) {
         InputManager im = InputManager.getInstance();
         long now = SystemClock.uptimeMillis();
         int downflags = 0;
@@ -430,4 +474,3 @@ public class SlimActions {
     }
 
 }
-

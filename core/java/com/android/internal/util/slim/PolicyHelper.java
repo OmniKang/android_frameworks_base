@@ -42,13 +42,13 @@ public class PolicyHelper {
     // get @ButtonConfig with description if needed and other then an app description
     public static ArrayList<ButtonConfig> getPowerMenuConfigWithDescription(
             Context context, String values, String entries) {
-        String config = Settings.System.getStringForUser(
-                    context.getContentResolver(),
-                    Settings.System.POWER_MENU_CONFIG,
-                    UserHandle.USER_CURRENT);
-        if (config == null) {
-            config = PolicyConstants.POWER_MENU_CONFIG_DEFAULT;
-        }
+        //String config = Settings.System.getStringForUser(
+        //            context.getContentResolver(),
+        //            Settings.System.POWER_MENU_CONFIG,
+        //            UserHandle.USER_CURRENT);
+        //if (config == null) {
+            String config = PolicyConstants.POWER_MENU_CONFIG_DEFAULT;
+        //}
         return (ConfigSplitHelper.getButtonsConfigValues(context, config, values, entries, true));
     }
 
@@ -60,9 +60,9 @@ public class PolicyHelper {
         } else {
             config = ConfigSplitHelper.setButtonsConfig(buttonsConfig, true);
         }
-        Settings.System.putString(context.getContentResolver(),
-                    Settings.System.POWER_MENU_CONFIG,
-                    config);
+        //Settings.System.putString(context.getContentResolver(),
+        //            Settings.System.POWER_MENU_CONFIG,
+        //            config);
     }
 
     public static Drawable getPowerMenuIconImage(Context context,
@@ -75,22 +75,6 @@ public class PolicyHelper {
         PackageManager pm = context.getPackageManager();
         if (pm == null) {
             return null;
-        }
-
-        if (colorize) {
-            iconColor = Settings.System.getIntForUser(
-                    context.getContentResolver(),
-                    Settings.System.POWER_MENU_ICON_COLOR, -2,
-                    UserHandle.USER_CURRENT);
-            colorMode = Settings.System.getIntForUser(
-                    context.getContentResolver(),
-                    Settings.System.POWER_MENU_ICON_COLOR_MODE, 0,
-                    UserHandle.USER_CURRENT);
-
-            if (iconColor == -2) {
-                iconColor = context.getResources().getColor(
-                    com.android.internal.R.color.power_menu_icon_default_color);
-            }
         }
 
         if (!clickAction.startsWith("**")) {
@@ -181,9 +165,6 @@ public class PolicyHelper {
         } else if (clickAction.equals(PolicyConstants.ACTION_AIRPLANE)) {
             return context.getResources().getDrawable(
                 com.android.internal.R.drawable.ic_lock_airplane_mode_off);
-        } else if (clickAction.equals(PolicyConstants.ACTION_EXPANDED_DESKTOP)) {
-            return context.getResources().getDrawable(
-                com.android.internal.R.drawable.ic_lock_expanded_desktop);
         } else if (clickAction.equals(PolicyConstants.ACTION_PIE)) {
             return context.getResources().getDrawable(
                 com.android.internal.R.drawable.ic_lock_pie);
