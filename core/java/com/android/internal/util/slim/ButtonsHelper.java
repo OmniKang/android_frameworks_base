@@ -44,14 +44,14 @@ public class ButtonsHelper {
     // get and set the navbar configs from provider and return propper arraylist objects
     // @ButtonConfig
     public static ArrayList<ButtonConfig> getNavBarConfig(Context context) {
-        return (getButtonsConfigValues(context,
+        return (ConfigSplitHelper.getButtonsConfigValues(context,
             getNavBarProvider(context), null, null, false));
     }
 
     // get @ButtonConfig with description if needed and other then an app description
     public static ArrayList<ButtonConfig> getNavBarConfigWithDescription(
             Context context, String values, String entries) {
-        return (getButtonsConfigValues(context,
+        return (ConfigSplitHelper.getButtonsConfigValues(context,
             getNavBarProvider(context), values, entries, false));
     }
 
@@ -72,7 +72,7 @@ public class ButtonsHelper {
         if (reset) {
             config = ButtonsConstants.NAVIGATION_CONFIG_DEFAULT;
         } else {
-            config = setButtonsConfig(buttonsConfig, false);
+            config = ConfigSplitHelper.setButtonsConfig(buttonsConfig, false);
         }
         Settings.System.putString(context.getContentResolver(),
                     Settings.System.NAVIGATION_BAR_CONFIG,
@@ -154,13 +154,13 @@ public class ButtonsHelper {
     // Get and set the navring configs from provider and return propper arraylist objects
     // @ButtonConfig
     public static ArrayList<ButtonConfig> getNavRingConfig(Context context) {
-        return (getButtonsConfigValues(context,
+        return (ConfigSplitHelper.getButtonsConfigValues(context,
             getNavRingProvider(context), null, null, false));
     }
 
     public static ArrayList<ButtonConfig> getNavRingConfigWithDescription(
             Context context, String values, String entries) {
-        return (getButtonsConfigValues(context,
+        return (ConfigSplitHelper.getButtonsConfigValues(context,
             getNavRingProvider(context), values, entries, false));
     }
 
@@ -181,79 +181,57 @@ public class ButtonsHelper {
         if (reset) {
             config = ButtonsConstants.NAV_RING_CONFIG_DEFAULT;
         } else {
-            config = setButtonsConfig(buttonsConfig, false);
+            config = ConfigSplitHelper.setButtonsConfig(buttonsConfig, false);
         }
         Settings.System.putString(context.getContentResolver(),
                     Settings.System.NAVRING_CONFIG,
                     config);
     }
 
-    private static ArrayList<ButtonConfig> getButtonsConfigValues(Context context, String config,
-                String values, String entries, boolean isShortcut) {
-        // init vars to fill with them later the config values
-        int counter = 0;
-        ArrayList<ButtonConfig> buttonConfigList = new ArrayList<ButtonConfig>();
-        ButtonConfig buttonConfig = null;
+    // get and set the notification shortcut configs
+    // from provider and return propper arraylist objects
+    // @ButtonConfig
+    public static ArrayList<ButtonConfig> getNotificationsShortcutConfig(Context context) {
+        //String config = Settings.System.getStringForUser(
+        //            context.getContentResolver(),
+        //            Settings.System.NOTIFICATION_SHORTCUTS_CONFIG,
+        //            UserHandle.USER_CURRENT);
+        //if (config == null) {
+            String config = "";
+        //}
 
-        PackageManager pm = context.getPackageManager();
-        Resources settingsResources = null;
-        try {
-            settingsResources = pm.getResourcesForApplication(SETTINGS_METADATA_NAME);
-        } catch (Exception e) {
-            Log.e("ButtonsHelper:", "can't access settings resources",e);
-        }
-
-        // Split out the config to work with and add to the list
-        for (String configValue : config.split("\\" + ButtonsConstants.ACTION_DELIMITER)) {
-            counter++;
-            if (counter == 1) {
-                buttonConfig = new ButtonConfig(configValue,
-                            getProperSummary(pm, settingsResources,
-                            configValue, values, entries), null, null, null);
-            }
-            if (counter == 2) {
-                if (isShortcut) {
-                    buttonConfig.setIcon(configValue);
-                    buttonConfigList.add(buttonConfig);
-                    //reset counter due that shortcut iteration of one button is finished
-                    counter = 0;
-                } else {
-                    buttonConfig.setLongpressAction(configValue);
-                    buttonConfig.setLongpressActionDescription(
-                            getProperSummary(pm, settingsResources,
-                            configValue, values, entries));
-                }
-            }
-            if (counter == 3) {
-                buttonConfig.setIcon(configValue);
-                buttonConfigList.add(buttonConfig);
-                //reset counter due that iteration of full config button is finished
-                counter = 0;
-            }
-        }
-
-        return buttonConfigList;
+        return (ConfigSplitHelper.getButtonsConfigValues(context, config, null, null, true));
     }
 
-    private static String setButtonsConfig(
-            ArrayList<ButtonConfig> buttonsConfig, boolean isShortcut) {
-        String finalConfig = "";
-        ButtonConfig buttonConfig;
+    public static void setNotificationShortcutConfig(
+            Context context, ArrayList<ButtonConfig> buttonsConfig, boolean reset) {
+        String config;
+        if (reset) {
+            config = "";
+            //Settings.System.putInt(context.getContentResolver(),
+            //    Settings.System.NOTIFICATION_SHORTCUTS_COLOR, -2);
+            //Settings.System.putInt(context.getContentResolver(),
+            //    Settings.System.NOTIFICATION_SHORTCUTS_COLOR_MODE, 0);
+        } else {
+            config = ConfigSplitHelper.setButtonsConfig(buttonsConfig, true);
+        }
+        //Settings.System.putString(context.getContentResolver(),
+        //            Settings.System.NOTIFICATION_SHORTCUTS_CONFIG,
+        //            config);
+    }
 
-        for (int i = 0; i < buttonsConfig.size(); i++) {
-            if (i != 0) {
-                finalConfig += ButtonsConstants.ACTION_DELIMITER;
-            }
-            buttonConfig = buttonsConfig.get(i);
-            finalConfig += buttonConfig.getClickAction() + ButtonsConstants.ACTION_DELIMITER;
-            if (!isShortcut) {
-                finalConfig += buttonConfig.getLongpressAction()
-                    + ButtonsConstants.ACTION_DELIMITER;
-            }
-            finalConfig += buttonConfig.getIcon();
+    // get and set the lockcreen shortcut configs from provider and return propper arraylist objects
+    // @ButtonConfig
+    public static ArrayList<ButtonConfig> getLockscreenShortcutConfig(Context context) {
+        String config = Settings.System.getStringForUser(
+                    context.getContentResolver(),
+                    Settings.System.LOCKSCREEN_SHORTCUTS,
+                    UserHandle.USER_CURRENT);
+        if (config == null) {
+            config = "";
         }
 
-        return finalConfig;
+        return (ConfigSplitHelper.getButtonsConfigValues(context, config, null, null, true));
     }
 
     public static void setLockscreenShortcutConfig(Context context,
@@ -287,7 +265,17 @@ public class ButtonsHelper {
 
         if (!clickAction.startsWith("**")) {
             try {
-                d = pm.getActivityIcon(Intent.parseUri(clickAction, 0));
+                String extraIconPath = clickAction.replaceAll(".*?hasExtraIcon=", "");
+                if (extraIconPath != null && !extraIconPath.isEmpty()) {
+                    File f = new File(Uri.parse(extraIconPath).getPath());
+                    if (f.exists()) {
+                        d = new BitmapDrawable(context.getResources(),
+                                f.getAbsolutePath());
+                    }
+                }
+                if (d == null) {
+                    d = pm.getActivityIcon(Intent.parseUri(clickAction, 0));
+                }
             } catch (NameNotFoundException e) {
                 resId = systemUiResources.getIdentifier(
                     SYSTEMUI_METADATA_NAME + ":drawable/ic_sysbar_null", null, null);

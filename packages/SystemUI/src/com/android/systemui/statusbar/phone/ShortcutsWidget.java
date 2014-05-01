@@ -112,15 +112,15 @@ public class ShortcutsWidget extends LinearLayout {
         mActive = mChildCount > 0;
 
         if (mActive) {
-            mColor = Settings.System.getIntForUser(resolver,
-                    Settings.System.NOTIFICATION_SHORTCUTS_COLOR, -2,
-                    UserHandle.USER_CURRENT);
-            if (mColor == -2) {
+            //mColor = Settings.System.getIntForUser(resolver,
+            //        Settings.System.NOTIFICATION_SHORTCUTS_COLOR, -2,
+            //        UserHandle.USER_CURRENT);
+            //if (mColor == -2) {
                 mColor = mContext.getResources().getColor(R.color.notification_shortcut_color);
-            }
-            mColorizeMode = Settings.System.getIntForUser(resolver,
-                    Settings.System.NOTIFICATION_SHORTCUTS_COLOR_MODE,
-                    0, UserHandle.USER_CURRENT);
+            //}
+            //mColorizeMode = Settings.System.getIntForUser(resolver,
+            //        Settings.System.NOTIFICATION_SHORTCUTS_COLOR_MODE,
+            //        0, UserHandle.USER_CURRENT);
             recreateShortcutLayout();
         } else {
             removeAllViews();
@@ -269,7 +269,7 @@ public class ShortcutsWidget extends LinearLayout {
                 layoutParams.setMargins(determinedMargin, 0, determinedMargin, mGetPxPadding);
 
                 iv.setLayoutParams(layoutParams);
-                iv.setBackgroundResource(R.drawable.notification_shortcut_bg);
+                //iv.setBackgroundResource(R.drawable.notification_shortcut_bg);
                 iv.setLongClickable(true);
                 iv.setOnClickListener(new View.OnClickListener() {
                     @Override
